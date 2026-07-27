@@ -1,541 +1,398 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0a0a0f">
-  <title>MoeGallery · 美女 & 二次元图片浏览器</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🖼️</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#0a0a0f;--surface:rgba(255,255,255,0.06);--surface2:rgba(255,255,255,0.1);
-      --surface-hover:rgba(255,255,255,0.15);--glass:rgba(15,15,25,0.65);
-      --text:#f0f0f5;--text2:rgba(255,255,255,0.6);--text3:rgba(255,255,255,0.35);
-      --accent:#e84393;--accent2:#6c5ce7;--accent3:#00cec9;
-      --glow:rgba(232,67,147,0.35);--glow2:rgba(108,92,231,0.3);
-      --r:14px;--rl:20px;--rf:50%;
-      --safe-b:env(safe-area-inset-bottom,12px);
-      --safe-t:env(safe-area-inset-top,12px);
-      --safe-l:env(safe-area-inset-left,12px);
-      --safe-r:env(safe-area-inset-right,12px);
-    }
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-    html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#08080c">
+<meta name="description" content="39个精选美女与二次元随机图API，全屏浏览，毛玻璃UI">
+<title>MoeGallery</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#08080c;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;color:#eee;-webkit-font-smoothing:antialiased}
 
-    /* === STAGE === */
-    .stage{position:fixed;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;background:#000}
-    .img-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-    .img-layer img{width:100%;height:100%;object-fit:contain;transition:opacity .45s ease,filter .45s ease;pointer-events:none;-webkit-user-drag:none}
-    .img-layer.cover img{object-fit:cover}
-    .img-layer.a{z-index:3}.img-layer.a img{opacity:1;filter:none}
-    .img-layer.i{z-index:2}.img-layer.i img{opacity:0;filter:blur(10px) brightness(.5)}
+/* ---- Stage ---- */
+.stage{position:fixed;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden}
+.il{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.il img{width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .4s ease;pointer-events:none;-webkit-user-drag:none;will-change:opacity}
+.il.a{z-index:3}.il.a img{opacity:1}
+.il.i{z-index:2}.il.i img{opacity:0}
+.il.cv img{object-fit:cover}
 
-    /* === LOADING === */
-    .status{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;pointer-events:none;transition:opacity .35s}
-    .status.hide{opacity:0}
-    .spinner{width:42px;height:42px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--accent);border-radius:var(--rf);animation:spin .7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .dots{display:flex;gap:7px;margin-top:18px}
-    .dots span{width:7px;height:7px;border-radius:var(--rf);background:var(--text3);animation:dot 1.3s ease-in-out infinite}
-    .dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
-    @keyframes dot{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1);opacity:1}}
-    .err{text-align:center;color:var(--text2);font-size:14px}
-    .err .ico{font-size:44px;display:block;margin-bottom:10px;opacity:.6}
-    .retry{display:inline-block;margin-top:14px;padding:9px 22px;border-radius:var(--rl);background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;pointer-events:auto;border:1px solid rgba(255,255,255,.15);transition:all .2s}
-    .retry:active{transform:scale(.93)}
+/* ---- Status ---- */
+.sts{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:5;pointer-events:none;transition:opacity .3s}.sts.h{opacity:0}
+.sp{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#e84393;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.dt{display:flex;gap:6px;margin-top:16px}.dt i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);animation:dt 1.2s ease-in-out infinite}.dt i:nth-child(2){animation-delay:.15s}.dt i:nth-child(3){animation-delay:.3s}
+@keyframes dt{0%,80%,100%{transform:scale(.4);opacity:.2}40%{transform:scale(1);opacity:1}}
+.er{text-align:center;color:rgba(255,255,255,.5);font-size:13px;line-height:1.7}
+.er b{font-size:40px;display:block;margin-bottom:8px;opacity:.5}
+.er button{margin-top:12px;padding:8px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:12px;cursor:pointer;pointer-events:auto;transition:all .15s}
+.er button:active{transform:scale(.92);background:rgba(255,255,255,.15)}
 
-    /* === GLASS BAR === */
-    .glass{background:var(--glass);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.08);border-radius:var(--rl)}
+/* ---- Glass ---- */
+.g{background:rgba(12,12,20,.55);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid rgba(255,255,255,.07)}
 
-    /* === TOP === */
-    .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-t)+6px) var(--safe-r) 6px var(--safe-l);pointer-events:none}
-    .top>*{pointer-events:auto}
-    .badge{display:flex;align-items:center;gap:7px;padding:7px 14px;font-size:12px;font-weight:500;color:var(--text2);border-radius:var(--rl);transition:all .2s}
-    .badge .cnt{color:var(--text);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;transition:transform .2s cubic-bezier(.18,.89,.32,1.28)}
-    .acts{display:flex;gap:6px}
-    .ib{width:36px;height:36px;border-radius:var(--rf);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--text)}
-    .ib:active{transform:scale(.88);background:var(--surface-hover)!important}
-    .ib.on{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 16px var(--glow)}
-    .ib svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* ---- Top Bar ---- */
+.tb{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top,8px)+6px) 12px 6px;pointer-events:none}
+.tb>*{pointer-events:auto}
+.badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:500;color:rgba(255,255,255,.55);max-width:55vw;overflow:hidden}
+.badge .n{font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge .c{color:#fff;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;transition:transform .15s cubic-bezier(.18,.89,.32,1.28)}
+.badge .u{color:rgba(255,255,255,.3);font-size:10px}
+.acts{display:flex;gap:5px}
+.ib{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:#fff;flex-shrink:0}
+.ib:active{transform:scale(.85);background:rgba(255,255,255,.15)!important}
+.ib.on{background:#e84393!important;border-color:#e84393!important;box-shadow:0 0 14px rgba(232,67,147,.35)}
+.ib svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-    /* === BOTTOM === */
-    .bot{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:6px;padding:6px var(--safe-r) calc(var(--safe-b)+6px) var(--safe-l);pointer-events:none;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-    .bot::-webkit-scrollbar{display:none}
-    .bot>*{pointer-events:auto;flex-shrink:0}
-    .pb{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--rl);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.2px;color:var(--text)}
-    .pb:active{transform:scale(.93);background:var(--surface-hover)!important}
-    .pb.act{background:var(--accent)!important;border-color:var(--accent)!important;box-shadow:0 0 20px var(--glow);color:#fff!important}
-    .pb svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* ---- Bottom Bar ---- */
+.bb{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 10px calc(env(safe-area-inset-bottom,8px)+6px);pointer-events:none;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bb::-webkit-scrollbar{display:none}
+.bb>*{pointer-events:auto;flex-shrink:0}
+.pb{display:flex;align-items:center;gap:4px;padding:6px 11px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;color:#fff}
+.pb:active{transform:scale(.92);background:rgba(255,255,255,.12)!important}
+.pb.act{background:#e84393!important;border-color:#e84393!important;box-shadow:0 0 18px rgba(232,67,147,.3);color:#fff!important}
+.pb svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-    /* === SOURCE PANEL === */
-    .panel-mask{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s}
-    .panel-mask.show{opacity:1;pointer-events:auto}
-    .panel{position:fixed;bottom:0;left:0;right:0;z-index:26;max-height:75vh;background:rgba(18,18,28,.95);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,.72,0,1);padding:20px 16px calc(var(--safe-b)+16px);overflow-y:auto}
-    .panel.show{transform:translateY(0)}
-    .panel h3{font-size:16px;font-weight:600;margin-bottom:4px}
-    .panel .sub{font-size:11px;color:var(--text3);margin-bottom:14px}
-    .cat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px;padding-left:4px}
-    .cat-label:first-of-type{margin-top:0}
-    .src-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-    .src-card{padding:12px;border-radius:var(--r);background:var(--surface);border:1px solid rgba(255,255,255,.05);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:4px}
-    .src-card:active{transform:scale(.96);background:var(--surface2)}
-    .src-card.cur{border-color:var(--accent);background:rgba(232,67,147,.08)}
-    .src-card .sn{font-size:13px;font-weight:600}
-    .src-card .sd{font-size:10px;color:var(--text3);line-height:1.4}
-    .src-card .si{font-size:10px;color:var(--accent3);font-weight:500}
+/* ---- Source Panel ---- */
+.mk{position:fixed;inset:0;z-index:25;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s}.mk.s{opacity:1;pointer-events:auto}
+.pn{position:fixed;bottom:0;left:0;right:0;z-index:26;max-height:70vh;width:100%;background:rgba(14,14,22,.96);backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.06);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);padding:16px 14px calc(env(safe-area-inset-bottom,8px)+14px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.pn.s{transform:translateY(0)}
+.pn h3{font-size:15px;font-weight:600;margin-bottom:3px}
+.pn .s2{font-size:10px;color:rgba(255,255,255,.3);margin-bottom:12px}
+.cl{font-size:10px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 6px;padding-left:2px}.cl:first-of-type{margin-top:0}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-bottom:4px}
+.sc{padding:10px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.04);cursor:pointer;transition:all .15s;overflow:hidden}
+.sc:active{transform:scale(.96);background:rgba(255,255,255,.08)}
+.sc.cu{border-color:rgba(232,67,147,.4);background:rgba(232,67,147,.06)}
+.sc .sn{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc .si{font-size:9px;margin-top:2px}
 
-    /* === NAV ARROWS === */
-    .arr{position:fixed;top:50%;z-index:20;width:46px;height:46px;border-radius:var(--rf);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;transform:translateY(-50%);opacity:.4;color:var(--text)}
-    .arr:hover{opacity:1;box-shadow:0 0 20px rgba(0,0,0,.6)}
-    .arr:active{transform:translateY(-50%) scale(.85)}
-    .arr svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-    .arr.l{left:max(14px,var(--safe-l))}.arr.r{right:max(14px,var(--safe-r))}
+/* ---- Arrows ---- */
+.ar{position:fixed;top:50%;z-index:20;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;transform:translateY(-50%);opacity:0;pointer-events:none;color:#fff}
+.ar:hover{opacity:1;box-shadow:0 0 20px rgba(0,0,0,.5)}.ar:active{transform:translateY(-50%) scale(.85)}
+.ar svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ar.l{left:12px}.ar.r{right:12px}
+@media(min-width:769px){.ar{opacity:.3;pointer-events:auto}}
 
-    /* === TOAST === */
-    .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(16px);z-index:30;padding:9px 18px;border-radius:var(--rl);font-size:12px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s;white-space:nowrap;color:var(--text)}
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ---- Toast ---- */
+.tt{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(12px);z-index:30;padding:8px 16px;border-radius:16px;font-size:11px;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;white-space:nowrap;color:#fff;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
+.tt.s{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    /* === HELP === */
-    .help{position:fixed;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity .3s}
-    .help.show{opacity:1;pointer-events:auto}
-    .help-card{padding:24px 22px 18px;max-width:340px;width:88%;text-align:center}
-    .help-card h3{font-size:17px;margin-bottom:14px}
-    .help-card .keys{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;text-align:left;font-size:12px;color:var(--text2);margin-bottom:16px}
-    .help-card kbd{display:inline-block;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.08);font-size:11px;font-family:'SF Mono',monospace;color:var(--text);border:1px solid rgba(255,255,255,.12);text-align:center;min-width:24px}
-    .help-card .cbtn{padding:9px 24px;border-radius:var(--rl);background:var(--surface2);border:1px solid rgba(255,255,255,.15);color:var(--text);font-size:13px;cursor:pointer;transition:all .2s}
-    .help-card .cbtn:active{transform:scale(.93)}
+/* ---- Help ---- */
+.hp{position:fixed;inset:0;z-index:35;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .25s}.hp.s{opacity:1;pointer-events:auto}
+.hc{padding:22px 20px 16px;max-width:320px;width:88%;text-align:center;border-radius:20px;overflow:hidden}
+.hc h3{font-size:16px;margin-bottom:12px}
+.hc .ks{display:grid;grid-template-columns:auto 1fr;gap:7px 12px;text-align:left;font-size:11px;color:rgba(255,255,255,.5);margin-bottom:14px}
+.hc kbd{display:inline-block;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,.07);font-size:10px;font-family:'SF Mono',monospace;color:#fff;border:1px solid rgba(255,255,255,.1);text-align:center;min-width:22px}
+.hc button{padding:8px 22px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.08);color:#fff;font-size:12px;cursor:pointer;transition:all .15s}.hc button:active{transform:scale(.92)}
+.hc p{font-size:10px;color:rgba(255,255,255,.3);margin-bottom:12px}
 
-    /* === RESPONSIVE === */
-    @media(max-width:768px){
-      .arr{display:none}.ib{width:32px;height:32px}.pb{padding:6px 10px;font-size:11px;gap:4px}.bot{gap:4px}
-      .badge{padding:5px 10px;font-size:10px}.badge .cnt{font-size:13px}.acts{gap:4px}
-      .src-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
-    }
-  </style>
+/* ---- Mobile: extra small ---- */
+@media(max-width:374px){
+  .pb{padding:4px 7px;font-size:9px;gap:2px}.bb{gap:3px}
+  .pb svg{width:12px;height:12px}
+  .badge{padding:4px 7px;font-size:9px;gap:3px;max-width:50vw}
+  .badge .c{font-size:11px}
+  .ib{width:28px;height:28px}.ib svg{width:12px;height:12px}
+  .acts{gap:3px}
+  .sg{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:4px}
+  .sc{padding:6px}.sc .sn{font-size:10px}.sc .si{font-size:8px}
+  .pn{padding:12px 10px calc(env(safe-area-inset-bottom,8px)+10px)}
+  .hc{padding:16px 14px 12px}
+}
+/* ---- Mobile: small ---- */
+@media(min-width:375px) and (max-width:480px){
+  .ib{width:30px;height:30px}.ib svg{width:14px;height:14px}
+  .pb{padding:5px 9px;font-size:10px;gap:3px}.bb{gap:4px}
+  .badge{padding:5px 9px;font-size:10px;gap:4px;max-width:55vw}
+  .badge .c{font-size:12px}
+  .acts{gap:4px}
+  .sg{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px}
+  .sc{padding:8px}.sc .sn{font-size:11px}
+}
+/* ---- Mobile: medium ---- */
+@media(min-width:481px) and (max-width:768px){
+  .sg{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+}
+/* ---- Safe area for notch phones ---- */
+@supports(padding:env(safe-area-inset-top)){
+  .tb{padding-top:calc(env(safe-area-inset-top) + 8px)}
+  .bb{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+  .pn{padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
+}
+</style>
 </head>
 <body>
+
 <div class="stage" id="stage">
-  <div class="img-layer a" id="l1"><img id="i1" src="" alt=""></div>
-  <div class="img-layer i" id="l2"><img id="i2" src="" alt=""></div>
-  <div class="status" id="sts">
-    <div class="spinner" id="spn"></div>
-    <div class="dots" id="dots" style="display:none"><span></span><span></span><span></span></div>
-    <div class="err" id="err" style="display:none">
-      <span class="ico">😿</span><span>图片加载失败</span><br>
-      <span style="font-size:11px;color:var(--text3)">请检查网络后重试</span><br>
-      <button class="retry" onclick="retry()">重新加载</button>
-    </div>
+  <div class="il a" id="L1"><img id="I1" src="" alt=""></div>
+  <div class="il i" id="L2"><img id="I2" src="" alt=""></div>
+  <div class="sts" id="sts">
+    <div class="sp" id="sp"></div>
+    <div class="dt" id="dt" style="display:none"><i></i><i></i><i></i></div>
+    <div class="er" id="er" style="display:none"><b>😿</b>加载失败<span style="font-size:10px;color:rgba(255,255,255,.3);display:block;margin-top:4px">点击重试或切换源</span><br><button onclick="doRetry()">重新加载</button></div>
   </div>
 </div>
 
-<div class="top" id="topBar">
-  <div class="badge glass" id="badge">
-    <span id="srcIcon">🌸</span>
-    <span id="srcName" style="font-weight:600;margin-right:3px">少女写真</span>
-    <span class="cnt" id="cnt">0</span>
-    <span style="color:var(--text3)">张</span>
+<div class="tb">
+  <div class="badge g" id="bdg">
+    <span id="sI">🌸</span>
+    <span class="n" id="sN">少女写真③</span>
+    <span class="c" id="cnt">0</span>
+    <span class="u">张</span>
   </div>
   <div class="acts">
-    <button class="ib glass" id="bFit" title="显示模式"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M16 4v16M4 8h16M4 16h16" stroke-dasharray="1 3"/></svg></button>
-    <button class="ib glass" id="bDl" title="下载"><svg viewBox="0 0 24 24"><path d="M12 4v12M8 12l4 4 4-4"/><line x1="4" y1="20" x2="20" y2="20"/></svg></button>
-    <button class="ib glass" id="bHelp" title="帮助"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2.5-2.5 4"/><circle cx="12" cy="17.5" r=".6" fill="currentColor" stroke="none"/></svg></button>
+    <button class="ib g" id="bF" title="适应/填充"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 4v16M16 4v16M4 8h16M4 16h16" stroke-dasharray="1 3"/></svg></button>
+    <button class="ib g" id="bD" title="下载"><svg viewBox="0 0 24 24"><path d="M12 4v12M8 12l4 4 4-4"/><line x1="4" y1="20" x2="20" y2="20"/></svg></button>
+    <button class="ib g" id="bH" title="帮助"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2.5-2.5 4"/><circle cx="12" cy="17.5" r=".6" fill="currentColor" stroke="none"/></svg></button>
   </div>
 </div>
 
-<div class="bot" id="botBar">
-  <button class="pb glass" id="bPrev" title="上一张"><svg viewBox="0 0 24 24"><polyline points="16 4 7 12 16 20"/></svg>上一张</button>
-  <button class="pb glass" id="bNext" title="下一张">下一张<svg viewBox="0 0 24 24"><polyline points="8 4 17 12 8 20"/></svg></button>
-  <button class="pb glass" id="bAuto" title="自动"><svg viewBox="0 0 24 24" id="aIco"><polygon points="7 4 19 12 7 20" fill="currentColor" stroke="none"/></svg><span id="aLbl">自动</span></button>
-  <button class="pb glass" id="bSrc" title="换源"><svg viewBox="0 0 24 24"><polyline points="7 16 3 12 7 8"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="12" x2="21" y2="12"/></svg>换源</button>
-  <button class="pb glass" id="bList" title="全部源"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>全部</button>
+<div class="bb">
+  <button class="pb g" id="bP"><svg viewBox="0 0 24 24"><polyline points="16 4 7 12 16 20"/></svg>上一张</button>
+  <button class="pb g" id="bN">下一张<svg viewBox="0 0 24 24"><polyline points="8 4 17 12 8 20"/></svg></button>
+  <button class="pb g" id="bA"><svg viewBox="0 0 24 24" id="aI"><polygon points="7 4 19 12 7 20" fill="currentColor" stroke="none"/></svg><span id="aL">自动</span></button>
+  <button class="pb g" id="bS"><svg viewBox="0 0 24 24"><polyline points="7 16 3 12 7 8"/><polyline points="17 8 21 12 17 16"/><line x1="3" y1="12" x2="21" y2="12"/></svg>换源</button>
+  <button class="pb g" id="bL"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>全部</button>
 </div>
 
-<button class="arr glass l" id="arrL"><svg viewBox="0 0 24 24"><polyline points="16 4 7 12 16 20"/></svg></button>
-<button class="arr glass r" id="arrR"><svg viewBox="0 0 24 24"><polyline points="8 4 17 12 8 20"/></svg></button>
+<button class="ar g l" id="aL"><svg viewBox="0 0 24 24"><polyline points="16 4 7 12 16 20"/></svg></button>
+<button class="ar g r" id="aR"><svg viewBox="0 0 24 24"><polyline points="8 4 17 12 8 20"/></svg></button>
 
-<div class="panel-mask" id="mask"></div>
-<div class="panel" id="panel">
-  <h3>🎨 图片源列表</h3>
-  <div class="sub">点击切换 · 已过滤仅保留美女/二次元</div>
-  <div id="panelList"></div>
-</div>
+<div class="mk" id="mk"></div>
+<div class="pn" id="pn"><h3>🎨 图片源</h3><div class="s2">点击切换 · 39个已验证可用</div><div id="pl"></div></div>
 
-<div class="help" id="helpP">
-  <div class="help-card glass">
+<div class="hp" id="hp">
+  <div class="hc g">
     <h3>⌨️ 快捷键</h3>
-    <div class="keys">
+    <div class="ks">
       <kbd>→</kbd><span>下一张</span><kbd>←</kbd><span>上一张</span>
-      <kbd>Space</kbd><span>下一张</span><kbd>A</kbd><span>自动播放</span>
-      <kbd>F</kbd><span>填充/适应</span><kbd>D</kbd><span>下载</span>
+      <kbd>空格</kbd><span>下一张</span><kbd>A</kbd><span>自动播放</span>
+      <kbd>F</kbd><span>适应/填充</span><kbd>D</kbd><span>下载</span>
       <kbd>S</kbd><span>换源</span><kbd>Tab</kbd><span>源列表</span>
     </div>
-    <p style="font-size:11px;color:var(--text3);margin-bottom:14px">移动端：左右滑动 · 双击切换模式</p>
-    <button class="cbtn" onclick="toggleHelp()">知道了</button>
+    <p>移动端：左右滑动 · 双击切换模式</p>
+    <button onclick="togH()">知道了</button>
   </div>
 </div>
 
-<div class="toast glass" id="toast"></div>
+<div class="tt g" id="tt"></div>
 
 <script>
 (function(){
-// ========== 源配置 ==========
-const CATS = {
-  '二次元': {icon:'✨', color:'#6c5ce7'},
-  '二次元壁纸': {icon:'🖼️', color:'#a29bfe'},
-  '二次元头像': {icon:'🎨', color:'#fd79a8'},
-  '动漫角色': {icon:'🎮', color:'#00b894'},
-  '写真': {icon:'📸', color:'#e17055'},
-  'JK制服': {icon:'👒', color:'#0984e3'},
-  '白丝': {icon:'🤍', color:'#dfe6e9'},
-  '黑丝': {icon:'🖤', color:'#636e72'},
-  '综合美女': {icon:'💐', color:'#e84393'},
-  '御姐': {icon:'🌹', color:'#fd79a8'}
+/* ========== DATA ========== */
+var CATS={
+  '二次元':{i:'✨',c:'#6c5ce7'},'二次元壁纸':{i:'🖼️',c:'#a29bfe'},'二次元头像':{i:'🎨',c:'#fd79a8'},
+  '动漫角色':{i:'🎮',c:'#00b894'},'写真':{i:'📸',c:'#e17055'},'JK制服':{i:'👒',c:'#0984e3'},
+  '白丝':{i:'🤍',c:'#b2bec3'},'黑丝':{i:'🖤',c:'#636e72'},'综合美女':{i:'💐',c:'#e84393'}
+};
+var D={
+'xxapi-2d':      {n:'二次元壁纸',     c:'二次元壁纸',  u:'https://v2.xxapi.cn/api/randomAcgPic?type=pc&return=302'},
+'xiaotu':        {n:'随机二次元',     c:'二次元',      u:'https://imgapi.xl0408.top/index.php'},
+'dmoe':          {n:'樱花二次元',     c:'二次元',      u:'https://www.dmoe.cc/random.php'},
+'loliapi':       {n:'LoliAPI横屏',    c:'二次元壁纸',  u:'https://www.loliapi.com/acg/pc'},
+'loliapi-pe':    {n:'LoliAPI竖屏',    c:'二次元壁纸',  u:'https://www.loliapi.com/acg/pe'},
+'loliapi-pp':    {n:'LoliAPI头像',    c:'二次元头像',  u:'https://www.loliapi.com/acg/pp'},
+'jitsu':         {n:'Jitsu二次元',    c:'二次元',      u:'https://moe.jitsu.top/api'},
+'horosama':      {n:'赫萝壁纸',       c:'二次元壁纸',  u:'https://api.horosama.com/random.php'},
+'ciyuan-mp':     {n:'次元竖屏',       c:'二次元壁纸',  u:'https://t.alcy.cc/mp'},
+'yujn-acg':      {n:'雨今ACG',       c:'二次元',      u:'http://api.yujn.cn/api/ACG.php'},
+'yujn-ecy':      {n:'雨今二次元',     c:'二次元',      u:'http://api.yujn.cn/api/ecy.php'},
+'yujn-hqacg':    {n:'高清ACG',       c:'二次元壁纸',  u:'http://api.yujn.cn/api/gzl_ACG.php'},
+'yingdao-dm1':   {n:'动漫综合①',     c:'二次元',      u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=动漫综合1'},
+
+'paizhe-bd':     {n:'白底二次元',     c:'二次元壁纸',  u:'https://api.paugram.com/wallpaper/'},
+'motianyi':      {n:'墨天逸',         c:'二次元壁纸',  u:'https://api.mtyqx.cn/tapi/random.php'},
+'98qy':          {n:'98情缘壁纸',     c:'二次元壁纸',  u:'http://www.98qy.com/sjbz/api.php'},
+'yingdao-genshin':{n:'原神',          c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=原神'},
+'yingdao-uma':    {n:'赛马娘',        c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=赛马娘'},
+'yingdao-kimetsu':{n:'鬼灭之刃',      c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=鬼灭之刃'},
+'yingdao-naruto': {n:'火影忍者',      c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=火影忍者'},
+'yingdao-jujutsu':{n:'咒术回战',      c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=咒术回战'},
+
+'yingdao-dragon': {n:'龙珠',          c:'动漫角色',    u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=龙珠'},
+'paulzzh':       {n:'东方Project',   c:'动漫角色',    u:'https://img.paulzzh.com/touhou/random'},
+'yingdao-xz1':   {n:'少女写真①',     c:'写真',        u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真1'},
+'yingdao-xz2':   {n:'少女写真②',     c:'写真',        u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真2'},
+'yingdao-xz3':   {n:'少女写真③',     c:'写真',        u:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真3'},
+'yujn-jk':       {n:'JK制服',        c:'JK制服',      u:'http://api.yujn.cn/api/jk.php'},
+'xxapi-bs':      {n:'白丝(xxapi)',    c:'白丝',        u:'https://v2.xxapi.cn/api/baisi?return=302'},
+'yujn-bs':       {n:'白丝(雨今)',     c:'白丝',        u:'http://api.yujn.cn/api/baisi.php'},
+'xxapi-hs':      {n:'黑丝(xxapi)',    c:'黑丝',        u:'https://v2.xxapi.cn/api/heisi?return=302'},
+'yujn-hs':       {n:'黑丝(雨今)',     c:'黑丝',        u:'http://api.yujn.cn/api/heisi.php'},
+'yujn-hs1':      {n:'黑丝精品①',     c:'黑丝',        u:'http://api.yujn.cn/api/hsjp1.php'},
+'yujn-hs2':      {n:'黑丝精品②',     c:'黑丝',        u:'http://api.yujn.cn/api/hsjp2.php'},
+'xxapi-3d':      {n:'三次元美女',     c:'综合美女',    u:'https://v2.xxapi.cn/api/meinvpic?return=302'},
+'yujn-ksxjj':    {n:'小姐姐',        c:'综合美女',    u:'http://api.yujn.cn/api/ksxjj.php'},
+'yujn-xjj':      {n:'小姐姐图',      c:'综合美女',    u:'http://api.yujn.cn/api/xjjtp.php'},
+'yujn-yangyan':  {n:'养眼美图',      c:'综合美女',    u:'http://api.yujn.cn/api/yangyan.php'},
+'yujn-mjx':      {n:'美娇娘',        c:'综合美女',    u:'http://api.yujn.cn/api/mjx.php'},
+'yujn-mcj':      {n:'美图集',        c:'综合美女',    u:'http://api.yujn.cn/api/mcj.php'}
 };
 
-const S = {
-  // === 二次元 ===
-  'xxapi-2d':       {name:'二次元壁纸',   cat:'二次元壁纸', url:'https://v2.xxapi.cn/api/randomAcgPic?type=pc&return=302'},
-  'xiaotu':         {name:'随机二次元',   cat:'二次元',     url:'https://imgapi.xl0408.top/index.php'},
-  'dmoe':           {name:'樱花二次元',   cat:'二次元',     url:'https://www.dmoe.cc/random.php'},
-  'loliapi':        {name:'LoliAPI',      cat:'二次元壁纸', url:'https://www.loliapi.com/acg/pc'},
-  'loliapi-pe':     {name:'LoliAPI竖屏', cat:'二次元壁纸', url:'https://www.loliapi.com/acg/pe'},
-  'loliapi-pp':     {name:'LoliAPI头像', cat:'二次元头像', url:'https://www.loliapi.com/acg/pp'},
-  'jitsu':          {name:'Jitsu涩图',    cat:'二次元',     url:'https://moe.jitsu.top/api'},
-  'horosama':       {name:'赫萝随机图',   cat:'二次元壁纸', url:'https://api.horosama.com/random.php'},
-  'ciyuan-mp':      {name:'次元API竖屏',  cat:'二次元壁纸', url:'https://t.alcy.cc/mp'},
-  'yujn-acg':       {name:'ACG',         cat:'二次元',     url:'http://api.yujn.cn/api/ACG.php'},
-  'yujn-ecy':       {name:'二次元',       cat:'二次元',     url:'http://api.yujn.cn/api/ecy.php'},
-  'yujn-hqacg':     {name:'高质量ACG',    cat:'二次元壁纸', url:'http://api.yujn.cn/api/gzl_ACG.php'},
-  'yingdao-dm1':    {name:'动漫综合①',   cat:'二次元',     url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=动漫综合1'},
-  'yingdao-dm2':    {name:'动漫综合②',   cat:'二次元',     url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=动漫综合2'},
-  'paizhe-bd':      {name:'白底二次元',   cat:'二次元壁纸', url:'https://api.paugram.com/wallpaper/'},
-  'motianyi':       {name:'墨天逸',       cat:'二次元壁纸', url:'https://api.mtyqx.cn/tapi/random.php'},
-  // === 动漫角色 ===
-  'yingdao-genshin': {name:'原神',        cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=原神'},
-  'yingdao-uma':     {name:'赛马娘',      cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=赛马娘'},
-  'yingdao-kimetsu': {name:'鬼灭之刃',   cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=鬼灭之刃'},
-  'yingdao-naruto':  {name:'火影忍者',    cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=火影忍者'},
-  'yingdao-jujutsu': {name:'咒术回战',   cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=咒术回战'},
-  'yingdao-wangzhe': {name:'王者荣耀',    cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=王者荣耀'},
-  'yingdao-dragon':  {name:'龙珠',        cat:'动漫角色',   url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=龙珠'},
-  'paulzzh':        {name:'东方Project', cat:'动漫角色',   url:'https://img.paulzzh.com/touhou/random'},
-  // === 写真 ===
-  'yingdao-xz1':    {name:'少女写真①',   cat:'写真',       url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真1'},
-  'yingdao-xz2':    {name:'少女写真②',   cat:'写真',       url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真2'},
-  'yingdao-xz3':    {name:'少女写真③',   cat:'写真',       url:'https://api.r10086.com/樱道随机图片api接口.php?图片系列=少女写真3'},
-  'jiuli':          {name:'写真图集',     cat:'写真',       url:'http://jiuli.xiaoapi.cn/i/img/mnyjs.php', rtype:'json'},
-  'jiuli-res':      {name:'写真图集',     cat:'写真',       url:''}, // 占位,实际用jiuli的img
-  'tangdouz-mn':    {name:'美女写真',     cat:'写真',       url:'http://api.tangdouz.com/mn.php', rtype:'link'},
-  'tangdouz-dm':    {name:'二次元壁纸',   cat:'二次元壁纸', url:'http://api.tangdouz.com/sjdmbz.php', rtype:'link'},
-  'tangdouz-v':     {name:'竖屏二次元',   cat:'二次元壁纸', url:'http://api.tangdouz.com/abz/dm.php', rtype:'link'},
-  // === JK ===
-  'yujn-jk':        {name:'JK制服',       cat:'JK制服',     url:'http://api.yujn.cn/api/jk.php'},
-  // === 白丝 ===
-  'xxapi-bs':       {name:'白丝',         cat:'白丝',       url:'https://v2.xxapi.cn/api/baisi?return=302'},
-  'yujn-bs':        {name:'白丝',         cat:'白丝',       url:'http://api.yujn.cn/api/baisi.php'},
-  // === 黑丝 ===
-  'xxapi-hs':       {name:'黑丝',         cat:'黑丝',       url:'https://v2.xxapi.cn/api/heisi?return=302'},
-  'yujn-hs':        {name:'黑丝',         cat:'黑丝',       url:'http://api.yujn.cn/api/heisi.php'},
-  'yujn-hs1':       {name:'黑丝精品①',   cat:'黑丝',       url:'http://api.yujn.cn/api/hsjp1.php'},
-  'yujn-hs2':       {name:'黑丝精品②',   cat:'黑丝',       url:'http://api.yujn.cn/api/hsjp2.php'},
-  // === 综合美女 ===
-  'xxapi-3d':       {name:'三次元美女',   cat:'综合美女',   url:'https://v2.xxapi.cn/api/meinvpic?return=302'},
-  'yujn-ksxjj':     {name:'小姐姐',       cat:'综合美女',   url:'http://api.yujn.cn/api/ksxjj.php'},
-  'yujn-xjj':       {name:'小姐姐图片',   cat:'综合美女',   url:'http://api.yujn.cn/api/xjjtp.php'},
-  'yujn-yangyan':   {name:'养眼美图',     cat:'综合美女',   url:'http://api.yujn.cn/api/yangyan.php'},
-  'yujn-mjx':       {name:'美娇娘',       cat:'综合美女',   url:'http://api.yujn.cn/api/mjx.php'},
-  'yujn-mcj':       {name:'美图集',       cat:'综合美女',   url:'http://api.yujn.cn/api/mcj.php'},
-  '98qy':           {name:'随机壁纸',     cat:'二次元壁纸', url:'http://www.98qy.com/sjbz/api.php'},
-  // 移除 jiuli-res 占位
-};
-delete S['jiuli-res'];
+/* ========== STATE ========== */
+var CO=['二次元','二次元壁纸','二次元头像','动漫角色','写真','JK制服','白丝','黑丝','综合美女'];
+var KS=Object.keys(D),cur='yingdao-xz3',ly='L1',ld=false,cv=false,at=false,atm=null;
+var HI=[],hp=-1,tot=0,ttm=null;
+var AINT=5000;
 
-const ORDER = Object.keys(S);
-// 按分类排序
-const catOrder = ['二次元','二次元壁纸','二次元头像','动漫角色','写真','JK制服','白丝','黑丝','综合美女'];
-function sortKeys(){
-  ORDER.sort((a,b)=>{
-    const ca = catOrder.indexOf(S[a].cat), cb = catOrder.indexOf(S[b].cat);
-    if(ca!==cb) return ca-cb;
-    return a.localeCompare(b);
-  });
+/* ========== DOM ========== */
+function $(i){return document.getElementById(i)}
+var I1=$('I1'),I2=$('I2'),L1=$('L1'),L2=$('L2'),sts=$('sts'),sp=$('sp'),dt=$('dt'),er=$('er');
+var cnt=$('cnt'),sI=$('sI'),sN=$('sN');
+var bF=$('bF'),bD=$('bD'),bH=$('bH'),bP=$('bP'),bN=$('bN'),bA=$('bA'),bS=$('bS'),bL=$('bL');
+var aI=$('aI'),aL=$('aL'),aR=$('aR'),mk=$('mk'),pn=$('pn'),pl=$('pl'),hp=$('hp'),tt=$('tt');
+
+function iLy(){return ly==='L1'?'L2':'L1'}
+function iL(){return ly}
+function aEl(){return ly==='L1'?L1:L2}
+function nEl(){return ly==='L1'?L2:L1}
+function aIm(){return ly==='L1'?I1:I2}
+function nIm(){return ly==='L1'?I2:I1}
+
+/* ========== CORE ========== */
+function updBdg(){
+  var s=D[cur],ci=CATS[s.c]||{i:'🖼️',c:'#e84393'};
+  sI.textContent=ci.i;sN.textContent=s.n;
+  document.querySelectorAll('.sc').forEach(function(e){e.classList.toggle('cu',e.dataset.id===cur)});
 }
-sortKeys();
-
-let cur = ORDER[0], layer = 'l1', loading = false, cover = false, auto = false, autoT = null;
-const AINT = 5000, hist = [], hpos = -1, total = 0;
-let toastT = null;
-
-// DOM
-const $=id=>document.getElementById(id);
-const i1=$('i1'),i2=$('i2'),l1=$('l1'),l2=$('l2'),sts=$('sts'),spn=$('spn'),dots=$('dots'),err=$('err');
-const cnt=$('cnt'),srcIcon=$('srcIcon'),srcName=$('srcName');
-const bFit=$('bFit'),bDl=$('bDl'),bHelp=$('bHelp'),bPrev=$('bPrev'),bNext=$('bNext');
-const bAuto=$('bAuto'),bSrc=$('bSrc'),bList=$('bList');
-const aIco=$('aIco'),aLbl=$('aLbl');
-const mask=$('mask'),panel=$('panel'),panelList=$('panelList');
-const helpP=$('helpP'),toast=$('toast');
-
-function inactive(){return layer==='l1'?'l2':'l1'}
-function active(){return layer}
-function activeLayer(){return layer==='l1'?l1:l2}
-function inactiveLayer(){return layer==='l1'?l2:l1}
-function activeImg(){return layer==='l1'?i1:i2}
-function inactiveImg(){return layer==='l1'?i2:i1}
-
-function updateUI(){
-  const s=S[cur],c=CATS[s.cat]||{icon:'🖼️',color:'#e84393'};
-  srcIcon.textContent=c.icon;srcName.textContent=s.name;
-  document.querySelectorAll('.src-card').forEach(el=>{el.classList.toggle('cur',el.dataset.id===cur)});
+function aUrl(){
+  var b=D[cur].u;
+  return b+(b.indexOf('?')>-1?'&':'?')+'_t='+Date.now();
 }
-
-function apiUrl(){
-  const base=S[cur].url;
-  return base+(base.includes('?')?'&':'?')+'_t='+Date.now();
+function load(init){
+  if(ld&&!init)return;ld=true;
+  if(hp<HI.length-1)HI.length=hp+1;
+  var url=aUrl();
+  var tL=init?aEl():nEl(),tI=init?aIm():nIm(),aL=aEl();
+  init?sL():sD();
+  var img=new Image();img.crossOrigin='anonymous';
+  var to=setTimeout(function(){img.src='';sE();ld=false},16000);
+  function ok(){clearTimeout(to);tI.src=url;
+    if(!init){aL.classList.remove('a');aL.classList.add('i');tL.classList.remove('i');tL.classList.add('a');ly=tL.id}
+    hS();tot++;uCnt();HI.push({u:url,id:cur});hp=HI.length-1;
+    if(HI.length>60){HI.shift();hp--}ld=false;if(at)rAt()}
+  function no(){clearTimeout(to);var ru=D[cur].u+(D[cur].u.indexOf('?')>-1?'&':'?')+'_r='+Date.now();
+    var i2=new Image();i2.crossOrigin='anonymous';
+    var t2=setTimeout(function(){i2.src='';sE();ld=false},12000);
+    i2.onload=function(){clearTimeout(t2);tI.src=ru;
+      if(!init){aL.classList.remove('a');aL.classList.add('i');tL.classList.remove('i');tL.classList.add('a');ly=tL.id}
+      hS();tot++;uCnt();HI.push({u:ru,id:cur});hp=HI.length-1;ld=false;if(at)rAt()};
+    i2.onerror=function(){clearTimeout(t2);sE();ld=false;if(at)stA()};
+    i2.src=ru}
+  img.onload=ok;img.onerror=no;img.src=url;
 }
-
-function loadNew(init=false){
-  if(loading&&!init)return;loading=true;
-  if(hpos<hist.length-1)hist.length=hpos+1;
-  const url=apiUrl();
-  const rtype=S[cur].rtype||'img';
-  if(rtype==='json'){
-    loadJson(url,init);return;
-  }
-  if(rtype==='link'){
-    loadLink(url,init);return;
-  }
-  directLoad(url,init);
+function goH(d){
+  if(ld||!HI.length)return;
+  var np=hp+d;if(np<0)return;
+  if(np>=HI.length){load();return}
+  ld=true;hp=np;var it=HI[hp];
+  var tL=nEl(),tI=nIm(),aL=aEl();sD();
+  var img=new Image();img.crossOrigin='anonymous';
+  var to=setTimeout(function(){img.src='';ld=false;load()},12000);
+  img.onload=function(){clearTimeout(to);tI.src=it.u;aL.classList.remove('a');aL.classList.add('i');tL.classList.remove('i');tL.classList.add('a');ly=tL.id;hS();uCnt();ld=false;if(at)rAt()};
+  img.onerror=function(){clearTimeout(to);ld=false;load()};
+  img.src=it.u;
 }
+window.doRetry=function(){if(ld)return;HI=[];hp=-1;load(true)};
 
-function loadJson(url,init){
-  const tL=init?activeLayer():inactiveLayer();
-  const tI=init?activeImg():inactiveImg();
-  const aL=activeLayer();
-  if(init)showLoad();else showDots();
-  fetch(url).then(r=>r.text()).then(txt=>{
-    try{
-      const d=JSON.parse(txt);
-      let imgU='';
-      if(d.res&&d.res.thumb)imgU=d.res.thumb['480']||'';
-      if(!imgU&&d.img){imgU=Array.isArray(d.img)?d.img[0]:d.img}
-      if(!imgU)throw'no url';
-      imgU=imgU.replace(/\?.*$/,'')+'?_t='+Date.now();
-      preload(imgU,tI,tL,aL,init);
-    }catch(e){if(init){errFn();loading=false}else{errFn();loading=false}}
-  }).catch(()=>{if(init){errFn();loading=false}else{errFn();loading=false}});
+/* ========== STATUS ========== */
+function sL(){sts.classList.remove('h');sp.style.display='block';dt.style.display='none';er.style.display='none'}
+function sD(){sts.classList.remove('h');sp.style.display='none';dt.style.display='flex';er.style.display='none'}
+function hS(){sts.classList.add('h')}
+function sE(){sts.classList.remove('h');sp.style.display='none';dt.style.display='none';er.style.display='block'}
+function uCnt(){cnt.textContent=tot;cnt.style.transform='scale(1.15)';setTimeout(function(){cnt.style.transform='scale(1)'},150)}
+
+/* ========== CONTROLS ========== */
+function tCv(){cv=!cv;L1.classList.toggle('cv',cv);L2.classList.toggle('cv',cv);bF.classList.toggle('on',cv);tT(cv?'📐 填充':'📐 适应')}
+async function dl(){
+  var img=aIm();if(!img.src||img.src===location.href){tT('⚠️ 暂无图片');return}
+  tT('📥 下载中...');
+  try{var r=await fetch(img.src,{mode:'cors'});var b=await r.blob();var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download=D[cur].n+'-'+Date.now()+'.jpg';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);tT('✅ 已下载')}
+  catch{tT('🔗 新窗口打开...');setTimeout(function(){window.open(img.src,'_blank')},300)}
 }
-
-function loadLink(url,init){
-  const tL=init?activeLayer():inactiveLayer();
-  const tI=init?activeImg():inactiveImg();
-  const aL=activeLayer();
-  if(init)showLoad();else showDots();
-  fetch(url).then(r=>r.text()).then(txt=>{
-    const m=txt.match(/https?:\/\/[^\s"'\\<>]+/);
-    if(m){preload(m[0]+'?_t='+Date.now(),tI,tL,aL,init)}
-    else{errFn();loading=false}
-  }).catch(()=>{errFn();loading=false});
+function stA(){at=true;bA.classList.add('act');aL.textContent='停止';aI.innerHTML='<rect x="5" y="5" width="5" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="5" height="14" rx="1" fill="currentColor" stroke="none"/>';tT('▶️ 自动播放');rAt()}
+function stp(){at=false;bA.classList.remove('act');aL.textContent='自动';aI.innerHTML='<polygon points="7 4 19 12 7 20" fill="currentColor" stroke="none"/>';clearTimeout(atm);atm=null;tT('⏸ 已暂停')}
+function rAt(){clearTimeout(atm);if(at)atm=setTimeout(function(){if(at)load()},AINT)}
+function sSrc(){
+  if(ld)return;if(at)stp();
+  var i=KS.indexOf(cur);cur=KS[(i+1)%KS.length];updBdg();
+  HI=[];hp=-1;tot=0;uCnt();
+  I1.src=I2.src='';L1.classList.add('a');L1.classList.remove('i');L2.classList.remove('a');L2.classList.add('i');ly='L1';
+  load(true);tT('切换至 '+D[cur].n);
 }
-
-function directLoad(url,init){
-  const tL=init?activeLayer():inactiveLayer();
-  const tI=init?activeImg():inactiveImg();
-  const aL=activeLayer();
-  if(init)showLoad();else showDots();
-  preload(url,tI,tL,aL,init);
+function selSrc(id){
+  if(ld||id===cur)return;if(at)stp();
+  cur=id;updBdg();cP();
+  HI=[];hp=-1;tot=0;uCnt();
+  I1.src=I2.src='';L1.classList.add('a');L1.classList.remove('i');L2.classList.remove('a');L2.classList.add('i');ly='L1';
+  load(true);tT('切换至 '+D[cur].n);
 }
+function tP(){var s=!pn.classList.contains('s');pn.classList.toggle('s',s);mk.classList.toggle('s',s)}
+function cP(){pn.classList.remove('s');mk.classList.remove('s')}
+function tT(m){clearTimeout(ttm);tt.textContent=m;tt.classList.add('s');ttm=setTimeout(function(){tt.classList.remove('s')},1400)}
+function tH(){hp.classList.toggle('s')}
 
-function preload(url,tI,tL,aL,init){
-  const img=new Image();img.crossOrigin='anonymous';
-  const t0=Date.now();
-  const timeout=setTimeout(()=>{img.src='';errFn();loading=false},18000);
-  img.onload=()=>{
-    clearTimeout(timeout);
-    tI.src=url;
-    if(!init){
-      aL.classList.remove('a');aL.classList.add('i');
-      tL.classList.remove('i');tL.classList.add('a');
-      layer=tL.id;
-    }
-    hideSts();
-    total++;updCnt();
-    hist.push({url,id:cur});
-    hpos=hist.length-1;
-    if(hist.length>80){hist.shift();hpos--}
-    loading=false;
-    if(auto)resetAuto();
-  };
-  img.onerror=()=>{
-    clearTimeout(timeout);
-    // retry once with fresh url
-    const retryUrl=S[cur].url+(S[cur].url.includes('?')?'&':'?')+'_r='+Date.now();
-    const img2=new Image();img2.crossOrigin='anonymous';
-    img2.onload=()=>{
-      tI.src=retryUrl;
-      if(!init){aL.classList.remove('a');aL.classList.add('i');tL.classList.remove('i');tL.classList.add('a');layer=tL.id}
-      hideSts();total++;updCnt();hist.push({url:retryUrl,id:cur});hpos=hist.length-1;loading=false;if(auto)resetAuto();
-    };
-    img2.onerror=()=>{errFn();loading=false;if(auto)stopAuto()};
-    img2.src=retryUrl;
-    const t2=setTimeout(()=>{img2.src='';errFn();loading=false;if(auto)stopAuto()},15000);
-    img2.onload=(()=>{const orig=img2.onload;return e=>{clearTimeout(t2);if(orig)orig(e)}})();
-    img2.onerror=(()=>{const orig=img2.onerror;return e=>{clearTimeout(t2);if(orig)orig(e)}})();
-  };
-  img.src=url;
-}
-
-function loadHist(dir){
-  if(loading||!hist.length)return;
-  const np=hpos+dir;
-  if(np<0)return;
-  if(np>=hist.length){loadNew();return}
-  loading=true;hpos=np;
-  const item=hist[hpos];
-  const tL=inactiveLayer(),tI=inactiveImg(),aL=activeLayer();
-  showDots();
-  const img=new Image();img.crossOrigin='anonymous';
-  const timeout=setTimeout(()=>{img.src='';errFn();loading=false},15000);
-  img.onload=()=>{clearTimeout(timeout);tI.src=item.url;aL.classList.remove('a');aL.classList.add('i');tL.classList.remove('i');tL.classList.add('a');layer=tL.id;hideSts();updCnt();loading=false;if(auto)resetAuto()};
-  img.onerror=()=>{clearTimeout(timeout);loadNew();loading=false};
-  img.src=item.url;
-}
-
-window.retry=()=>{if(loading)return;hist.length=0;hpos=-1;loadNew(true)};
-
-function showLoad(){sts.classList.remove('hide');spn.style.display='block';dots.style.display='none';err.style.display='none'}
-function showDots(){sts.classList.remove('hide');spn.style.display='none';dots.style.display='flex';err.style.display='none'}
-function hideSts(){sts.classList.add('hide')}
-function errFn(){sts.classList.remove('hide');spn.style.display='none';dots.style.display='none';err.style.display='block'}
-function updCnt(){cnt.textContent=total;cnt.style.transform='scale(1.2)';setTimeout(()=>cnt.style.transform='scale(1)',200)}
-
-function toggleCover(){
-  cover=!cover;
-  l1.classList.toggle('cover',cover);l2.classList.toggle('cover',cover);
-  bFit.classList.toggle('on',cover);
-  toast(cover?'📐 填充模式':'📐 适应模式');
-}
-
-async function download(){
-  const img=activeImg();
-  if(!img.src||img.src===location.href){toast('⚠️ 暂无图片');return}
-  toast('📥 下载中...');
-  try{
-    const r=await fetch(img.src,{mode:'cors'});
-    const b=await r.blob();const u=URL.createObjectURL(b);
-    const a=document.createElement('a');a.href=u;a.download=S[cur].name+'-'+Date.now()+'.jpg';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
-    toast('✅ 下载成功');
-  }catch{toast('🔗 新窗口打开...');setTimeout(()=>window.open(img.src,'_blank'),400)}
-}
-
-function startAuto(){auto=true;bAuto.classList.add('act');aLbl.textContent='停止';aIco.innerHTML='<rect x="5" y="5" width="5" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5" width="5" height="14" rx="1" fill="currentColor" stroke="none"/>';toast('▶️ 自动播放');resetAuto()}
-function stopAuto(){auto=false;bAuto.classList.remove('act');aLbl.textContent='自动';aIco.innerHTML='<polygon points="7 4 19 12 7 20" fill="currentColor" stroke="none"/>';clearTimeout(autoT);autoT=null;toast('⏸️ 已暂停')}
-function resetAuto(){clearTimeout(autoT);if(auto)autoT=setTimeout(()=>{if(auto)loadNew()},AINT)}
-
-function switchSrc(){
-  if(loading)return;if(auto)stopAuto();
-  const i=ORDER.indexOf(cur);cur=ORDER[(i+1)%ORDER.length];
-  updateUI();hist=[];hpos=-1;total=0;updCnt();
-  i1.src=i2.src='';l1.classList.add('a');l1.classList.remove('i');l2.classList.remove('a');l2.classList.add('i');layer='l1';
-  loadNew(true);toast('切换至 '+S[cur].name);
-}
-
-function togglePanel(){
-  const show=!panel.classList.contains('show');
-  panel.classList.toggle('show',show);mask.classList.toggle('show',show);
-}
-function closePanel(){panel.classList.remove('show');mask.classList.remove('show')}
-function selectSrc(id){
-  if(loading||id===cur)return;if(auto)stopAuto();
-  cur=id;updateUI();closePanel();
-  hist=[];hpos=-1;total=0;updCnt();
-  i1.src=i2.src='';l1.classList.add('a');l1.classList.remove('i');l2.classList.remove('a');l2.classList.add('i');layer='l1';
-  loadNew(true);toast('切换至 '+S[cur].name);
-}
-
-function toast(m){clearTimeout(toastT);toast.textContent=m;toast.classList.add('show');toastT=setTimeout(()=>toast.classList.remove('show'),1600)}
-function toggleHelp(){helpP.classList.toggle('show')}
-
-// Build panel
-function buildPanel(){
-  const grouped={};
-  ORDER.forEach(id=>{const s=S[id],c=s.cat;if(!grouped[c])grouped[c]=[];grouped[c].push(id)});
-  let html='';
-  catOrder.forEach(cat=>{
-    if(!grouped[cat])return;
-    const ci=CATS[cat]||{icon:'🖼️',color:'#e84393'};
-    html+=`<div class="cat-label" style="color:${ci.color}">${ci.icon} ${cat}</div><div class="src-grid">`;
-    grouped[cat].forEach(id=>{
-      const s=S[id];
-      html+=`<div class="src-card${id===cur?' cur':''}" data-id="${id}" onclick="selectSrc('${id}')"><span class="sn">${s.name}</span><span class="sd">${s.url.length>40?s.url.substring(0,38)+'...':s.url}</span><span class="si">${s.rtype==='json'?'JSON':s.rtype==='link'?'链接':'直出'}</span></div>`;
+/* ========== PANEL ========== */
+function bldP(){
+  var grp={};KS.forEach(function(k){var s=D[k];if(!grp[s.c])grp[s.c]=[];grp[s.c].push(k)});
+  var h='';
+  CO.forEach(function(cat){
+    if(!grp[cat])return;
+    var ci=CATS[cat]||{i:'🖼️',c:'#e84393'};
+    h+='<div class="cl" style="color:'+ci.c+'">'+ci.i+' '+cat+'</div><div class="sg">';
+    grp[cat].forEach(function(k){
+      h+='<div class="sc'+(k===cur?' cu':'')+'" data-id="'+k+'" onclick="selSrc(\''+k+'\')"><div class="sn">'+D[k].n+'</div><div class="si">'+(D[k].u.length>38?D[k].u.substring(0,36)+'…':D[k].u)+'</div></div>';
     });
-    html+='</div>';
+    h+='</div>';
   });
-  panelList.innerHTML=html;
+  pl.innerHTML=h;
 }
-buildPanel();
+bldP();
 
-// Touch
-let tx=0,ty=0,lt=0;
-function tS(e){if(e.target.closest('button,.panel,.help,.mask'))return;tx=e.touches[0].clientX;ty=e.touches[0].clientY}
+/* ========== TOUCH ========== */
+var tx=0,ty=0,lt=0;
+function tS(e){if(e.target.closest('button,.pn,.hp,.mk,.sts,.ar,.tb,.bb,.badge'))return;tx=e.touches[0].clientX;ty=e.touches[0].clientY}
 function tE(e){
-  if(e.target.closest('button,.panel,.help,.mask'))return;
-  const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
-  if(Math.abs(dx)<10&&Math.abs(dy)<10){
-    const n=Date.now();
-    if(n-lt<300){toggleCover();lt=0}else{lt=n;if(!auto)loadNew()}
-    return;
-  }
-  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx>0?loadHist(-1):(hpos>=hist.length-1?loadNew():loadHist(1))}
+  if(e.target.closest('button,.pn,.hp,.mk,.sts,.ar,.tb,.bb,.badge'))return;
+  var dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)<10&&Math.abs(dy)<10){var n=Date.now();if(n-lt<300){tCv();lt=0}else{lt=n;if(!at)load()}return}
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx>0?goH(-1):(hp>=HI.length-1?load():goH(1))}
 }
 
-// Bind
-bFit.onclick=toggleCover;
-bDl.onclick=download;
-bHelp.onclick=toggleHelp;
-bPrev.onclick=()=>loadHist(-1);
-bNext.onclick=()=>hpos>=hist.length-1?loadNew():loadHist(1);
-bAuto.onclick=()=>auto?stopAuto():startAuto();
-bSrc.onclick=switchSrc;
-bList.onclick=togglePanel;
-mask.onclick=closePanel;
-$('arrL').onclick=()=>loadHist(-1);
-$('arrR').onclick=()=>hpos>=hist.length-1?loadNew():loadHist(1);
-
-$('stage').onclick=e=>{
-  if(e.target.closest('button,.panel,.help,.mask,.status,.arr,.top,.bot'))return;
-  if(!auto&&!loading){hpos>=hist.length-1?loadNew():loadHist(1)}
-});
+/* ========== BIND ========== */
+bF.onclick=tCv;bD.onclick=dl;bH.onclick=tH;
+bP.onclick=function(){goH(-1)};bN.onclick=function(){hp>=HI.length-1?load():goH(1)};
+bA.onclick=function(){at?stp():stA()};bS.onclick=sSrc;bL.onclick=tP;
+mk.onclick=cP;
+$('aL').onclick=function(){goH(-1)};$('aR').onclick=function(){hp>=HI.length-1?load():goH(1)};
+$('stage').onclick=function(e){if(e.target.closest('button,.pn,.hp,.mk,.sts,.ar,.tb,.bb,.badge'))return;if(!at&&!ld){hp>=HI.length-1?load():goH(1)}};
 $('stage').addEventListener('touchstart',tS,{passive:false});
 $('stage').addEventListener('touchend',tE,{passive:false});
-
-document.addEventListener('keydown',e=>{
+document.addEventListener('keydown',function(e){
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   switch(e.key){
-    case'ArrowRight':e.preventDefault();if(!loading)hpos>=hist.length-1?loadNew():loadHist(1);break;
-    case'ArrowLeft':e.preventDefault();if(!loading)loadHist(-1);break;
-    case' ':e.preventDefault();if(!loading&&!auto)hpos>=hist.length-1?loadNew():loadHist(1);break;
-    case'a':case'A':e.preventDefault();auto?stopAuto():startAuto();break;
-    case'f':case'F':e.preventDefault();toggleCover();break;
-    case'd':case'D':e.preventDefault();download();break;
-    case's':case'S':e.preventDefault();switchSrc();break;
-    case'Tab':e.preventDefault();togglePanel();break;
-    case'Escape':if(helpP.classList.contains('show'))helpP.classList.remove('show');else if(panel.classList.contains('show'))closePanel();break;
-    case'h':case'H':e.preventDefault();toggleHelp();break;
+    case'ArrowRight':e.preventDefault();if(!ld)hp>=HI.length-1?load():goH(1);break;
+    case'ArrowLeft':e.preventDefault();if(!ld)goH(-1);break;
+    case' ':e.preventDefault();if(!ld&&!at)hp>=HI.length-1?load():goH(1);break;
+    case'a':case'A':e.preventDefault();at?stp():stA();break;
+    case'f':case'F':e.preventDefault();tCv();break;
+    case'd':case'D':e.preventDefault();dl();break;
+    case's':case'S':e.preventDefault();sSrc();break;
+    case'Tab':e.preventDefault();tP();break;
+    case'Escape':if(hp.classList.contains('s'))hp.classList.remove('s');else if(pn.classList.contains('s'))cP();break;
+    case'h':case'H':e.preventDefault();tH();break;
   }
 });
-helpP.onclick=e=>{if(e.target===helpP)helpP.classList.remove('show')};
+hp.onclick=function(e){if(e.target===hp)hp.classList.remove('s')};
+window.selSrc=selSrc;window.togH=tH;window.doRetry=doRetry;
 
-window.selectSrc=selectSrc;
-window.toggleHelp=toggleHelp;
-updateUI();loadNew(true);showLoad();
-
-console.log('🖼️ MoeGallery - '+ORDER.length+' 源已就绪');
+updBdg();load(true);sL();
+console.log('🖼️ MoeGallery · '+KS.length+' 源就绪');
 })();
 </script>
 </body>
