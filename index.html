@@ -749,7 +749,7 @@ function buildFavsPanel(){
 function copyAllFavs(){
   if(!favs.length){showToast('⚠️ 收藏夹为空');return}
   var urls=favs.map(function(f){return f.u}).join('\n');
-  navigator.clipboard.writeText(urls).then(function(){showToast('✅ 已复制 '+favs.length+' 个链接')}).catch(function(){showToast('❌ 复制失败')})
+  copyToClipboard(urls,function(){showToast('✅ 已复制 '+favs.length+' 个链接')},function(){showToast('❌ 复制失败')})
 }
 function clearFavs(){favs=[];localStorage.setItem('mg_favs',[]);favDot.style.display='none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent='0张';showToast('🗑 已清空')}
 function removeFav(i){favs.splice(i,1);localStorage.setItem('mg_favs',JSON.stringify(favs));favDot.style.display=favs.length?'block':'none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent=favs.length+'张';showToast('已删除')}

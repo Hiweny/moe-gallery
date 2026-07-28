@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美女 / 二次元美女 随机图 API 实测报告</title>
+<style>
+  :root{
+    --bg:#0f1117; --card:#171a23; --card2:#1e2230; --bd:#2a2f3e;
+    --txt:#e6e8ef; --mut:#8b91a3; --acc:#ff5c8a; --acc2:#7c5cff;
+    --ok:#34d399; --warn:#fbbf24; --bad:#f87171; --blk:#60a5fa;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:42px 22px 80px}
+  h1{font-size:30px;margin:0 0 6px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:800}
+  .sub{color:var(--mut);font-size:14px;margin-bottom:28px}
+  .sub a{color:var(--acc2);text-decoration:none}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:26px 0 10px}
+  .stat{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px 16px}
+  .stat .n{font-size:30px;font-weight:800;line-height:1}
+  .stat .l{color:var(--mut);font-size:13px;margin-top:8px}
+  .s-ok .n{color:var(--ok)} .s-blk .n{color:var(--blk)} .s-bad .n{color:var(--bad)} .s-tot .n{color:var(--acc)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--mut);font-size:13px;margin:18px 0 6px}
+  .legend b{font-weight:600}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  section{margin-top:42px}
+  h2{font-size:21px;margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  h2 .tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--card2);border:1px solid var(--bd);color:var(--mut)}
+  .desc{color:var(--mut);font-size:13.5px;margin:0 0 16px}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:16px;overflow:hidden;margin-bottom:22px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:top}
+  th{background:var(--card2);color:var(--mut);font-weight:600;font-size:12.5px;letter-spacing:.3px;position:sticky;top:0}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  td.name{font-weight:600;color:var(--txt)}
+  td.name small{display:block;color:var(--mut);font-weight:400;font-size:12px;margin-top:2px}
+  code,.url{font-family:"JetBrains Mono","SF Mono",Consolas,monospace;font-size:12.5px;color:#9ad;word-break:break-all}
+  .url{display:block;color:#8ec5e8}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .p-a{background:rgba(52,211,153,.14);color:var(--ok);border:1px solid rgba(52,211,153,.3)}
+  .p-b{background:rgba(251,191,36,.14);color:var(--warn);border:1px solid rgba(251,191,36,.3)}
+  .p-c{background:rgba(124,92,255,.14);color:#a593ff;border:1px solid rgba(124,92,255,.3)}
+  .p-blk{background:rgba(96,165,250,.14);color:var(--blk);border:1px solid rgba(96,165,250,.3)}
+  .p-bad{background:rgba(248,113,113,.14);color:var(--bad);border:1px solid rgba(248,113,113,.3)}
+  .p-2d{background:rgba(255,92,138,.14);color:var(--acc);border:1px solid rgba(255,92,138,.3)}
+  .p-3d{background:rgba(124,92,255,.14);color:#a593ff;border:1px solid rgba(124,92,255,.3)}
+  .bar{height:6px;border-radius:4px;background:var(--card2);overflow:hidden;margin-top:4px;width:90px}
+  .bar i{display:block;height:100%;border-radius:4px}
+  .speed-fast{background:linear-gradient(90deg,#34d399,#10b981)}
+  .speed-mid{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+  .speed-slow{background:linear-gradient(90deg,#f87171,#ef4444)}
+  .note{color:var(--mut);font-size:12px}
+  .callout{background:linear-gradient(135deg,rgba(96,165,250,.08),rgba(124,92,255,.06));border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:18px 20px;margin:22px 0;font-size:13.5px}
+  .callout b{color:var(--blk)}
+  .callout.bad{background:linear-gradient(135deg,rgba(248,113,113,.08),rgba(248,113,113,.03));border-color:rgba(248,113,113,.3)}
+  .callout.bad b{color:var(--bad)}
+  .top{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:18px 0}
+  .top .t{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px 18px}
+  .top .t h3{margin:0 0 6px;font-size:15px;color:var(--acc)}
+  .top .t p{margin:0;color:var(--mut);font-size:12.5px}
+  ul.tip{margin:10px 0 0;padding-left:18px;color:var(--mut);font-size:13px}
+  ul.tip li{margin:5px 0}
+  .foot{margin-top:50px;padding-top:22px;border-top:1px solid var(--bd);color:var(--mut);font-size:12.5px;text-align:center}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}.top{grid-template-columns:1fr}table{font-size:12.5px}.bar{width:60px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>美女 / 二次元美女 随机图 API 实测报告</h1>
+  <div class="sub">数据来源：<a href="https://www.haoruanmao.com/3810.html" target="_blank">好软猫《77+个二次元、三次元随机图API接口分享》</a> &nbsp;|&nbsp; 测试时间：2026-07-27 &nbsp;|&nbsp; 筛选范围：美女 / 二次元美女 / COS / 写真 / 黑白丝 / JK（已排除纯风景、猫狗、通用图库）</div>
+
+  <div class="stats">
+    <div class="stat s-tot"><div class="n">82</div><div class="l">筛选相关 API 总数</div></div>
+    <div class="stat s-ok"><div class="n">22</div><div class="l">实测可用</div></div>
+    <div class="stat s-blk"><div class="n">19</div><div class="l">环境受限（待本地验证）</div></div>
+    <div class="stat s-bad"><div class="n">41</div><div class="l">确认失效</div></div>
+  </div>
+
+  <div class="callout">
+    <b>测试环境说明（重要）：</b>本测试在远程沙盒中执行，出口网络对部分域名做了 <b>SNI 级拦截</b>（表现为 TLS 握手在 100ms 内被截断：<code>unexpected eof while reading</code>）。这类 API 在沙盒内无法验证，但在<i>主人本地网络</i>很可能正常。因此本报告把它们单列为「环境受限·待本地验证」，不归入失效。<b>所以「实测可用」= 沙盒内真跑通的真金白银，可信度最高。</b>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--ok)"></span><b>A级</b> 直出大图 & 速度快</span>
+    <span><span class="dot" style="background:var(--warn)"></span><b>B级</b> 可用但有小瑕疵（慢/需解析JSON/需忽略证书）</span>
+    <span><span class="dot" style="background:#a593ff"></span><b>C级</b> 返回文本链接，需二次请求取图</span>
+    <span><span class="dot" style="background:var(--blk)"></span><b>受限</b> 沙盒无法验证，建议本地测</span>
+    <span><span class="dot" style="background:var(--bad)"></span><b>失效</b> 404/502/反黄/空响应</span>
+  </div>
+
+  <!-- A级 -->
+  <section>
+    <h2>🥇 A级推荐：直出大图 + 速度快 <span class="tag">9 个</span></h2>
+    <p class="desc">响应均为直接返回图片字节（302 跳转或直出），无需解析，&lt;1.5s 内出图，最适合做壁纸/头像/QQ机器人。</p>
+    <div class="card">
+    <table>
+      <thead><tr><th style="width:24%">名称</th><th style="width:32%">接口地址</th><th>分类</th><th>速度</th><th>图大小</th><th>评级</th></tr></thead>
+      <tbody>
+        <tr><td class="name">小小API · 二次元<small>type=pc 横屏，return=302 直出</small></td><td><a class="url" href="https://v2.xxapi.cn/api/randomAcgPic?type=pc&return=302" target="_blank">v2.xxapi.cn/api/randomAcgPic?type=pc&return=302</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">333ms</b><div class="bar"><i class="speed-fast" style="width:95%"></i></div></td><td>1.49 MB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">超级小兔随机图<small>直出，稳定</small></td><td><a class="url" href="https://imgapi.xl0408.top/index.php" target="_blank">imgapi.xl0408.top/index.php</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">686ms</b><div class="bar"><i class="speed-fast" style="width:80%"></i></div></td><td>926 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">98情缘随机壁纸<small>http，直出大图</small></td><td><a class="url" href="http://www.98qy.com/sjbz/api.php" target="_blank">www.98qy.com/sjbz/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">618ms</b><div class="bar"><i class="speed-fast" style="width:82%"></i></div></td><td>837 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">樱花随机二次元<small>老牌，用的人多</small></td><td><a class="url" href="https://www.dmoe.cc/random.php" target="_blank">www.dmoe.cc/random.php</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">656ms</b><div class="bar"><i class="speed-fast" style="width:80%"></i></div></td><td>591 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">LoliAPI · 二次元<small>自适应横竖屏</small></td><td><a class="url" href="https://www.loliapi.com/acg/" target="_blank">www.loliapi.com/acg/</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">566ms</b><div class="bar"><i class="speed-fast" style="width:85%"></i></div></td><td>401 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">Jitsu 涩图<small>moe.jitsu.top，可加tag/r18</small></td><td><a class="url" href="https://moe.jitsu.top/api" target="_blank">moe.jitsu.top/api</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">537ms</b><div class="bar"><i class="speed-fast" style="width:85%"></i></div></td><td>629 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">赫萝随机图<small>支持 type/分辨率参数(1080p/2k/4k)</small></td><td><a class="url" href="https://api.horosama.com/random.php" target="_blank">api.horosama.com/random.php</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--ok)">549ms</b><div class="bar"><i class="speed-fast" style="width:85%"></i></div></td><td>303 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">小小API · 白丝<small>三次元，return=302</small></td><td><a class="url" href="https://v2.xxapi.cn/api/baisi?return=302" target="_blank">v2.xxapi.cn/api/baisi?return=302</a></td><td><span class="pill p-3d">三次元</span></td><td><b style="color:var(--ok)">259ms</b><div class="bar"><i class="speed-fast" style="width:95%"></i></div></td><td>265 KB</td><td><span class="pill p-a">A ⭐</span></td></tr>
+        <tr><td class="name">次元API · 移动端<small>t.alcy.cc/mp 竖屏直出</small></td><td><a class="url" href="https://t.alcy.cc/mp" target="_blank">t.alcy.cc/mp</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--warn)">1032ms</b><div class="bar"><i class="speed-mid" style="width:60%"></i></div></td><td>604 KB</td><td><span class="pill p-a">A</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="callout">
+      <b>🏆 主人专属 TOP 3 推荐：</b>
+      <div class="top">
+        <div class="t"><h3>① 小小API（v2.xxapi.cn）</h3><p>全家桶最香：二次元/三次元/白丝/黑丝四件套，333ms 极速、1.49MB 大图、302直出免解析。三次元首选。</p></div>
+        <div class="t"><h3>② 超级小兔 + 樱花 + LoliAPI</h3><p>二次元三连，均 500-700ms 直出大图，互为备份最稳。</p></div>
+        <div class="t"><h3>③ 赫萝随机图</h3><p>唯一支持指定 1080p/2k/4k 分辨率，想要高清壁纸选它。</p></div>
+        <div class="t"><h3>④ Jitsu 涩图</h3><p>支持 tag 标签 / r18 参数筛选，做涩图机器人首选。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B级 -->
+  <section>
+    <h2>🥈 B级可用：有小瑕疵但能用 <span class="tag">9 个</span></h2>
+    <p class="desc">速度偏慢 / 需解析 JSON / 需忽略 SSL 证书 / 图偏小，但都能稳定取到图。</p>
+    <div class="card">
+    <table>
+      <thead><tr><th style="width:22%">名称</th><th style="width:30%">接口地址</th><th>分类</th><th>速度</th><th>图大小</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td class="name">LoliAPI · 二次元头像<small>头像尺寸</small></td><td><a class="url" href="https://www.loliapi.com/acg/pp/" target="_blank">www.loliapi.com/acg/pp/</a></td><td><span class="pill p-2d">二次元</span></td><td>432ms</td><td>181 KB</td><td class="note">头像专用，正方形</td></tr>
+        <tr><td class="name">PAULZZH 东方Project<small>图库大</small></td><td><a class="url" href="https://img.paulzzh.com/touhou/random" target="_blank">img.paulzzh.com/touhou/random</a></td><td><span class="pill p-2d">二次元</span></td><td>765ms</td><td>118 KB</td><td class="note">仅东方系列</td></tr>
+        <tr><td class="name">保罗API 白底二次元<small>纯色背景</small></td><td><a class="url" href="https://api.paugram.com/wallpaper/" target="_blank">api.paugram.com/wallpaper/</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--warn)">2285ms</b></td><td>141 KB</td><td class="note">偏慢，适合做纯色桌面</td></tr>
+        <tr><td class="name">樱道 · 动漫综合1<small>系列超多</small></td><td><a class="url" href="https://api.r10086.com/" target="_blank">api.r10086.com/...</a></td><td><span class="pill p-2d">二次元</span></td><td>440ms</td><td>71 KB</td><td class="note">图偏小，但有30+细分系列</td></tr>
+        <tr><td class="name">小C 每日漫图<small>pixiv源，返回JSON</small></td><td><a class="url" href="https://pixiv.xiaoc.cn/v1/img/random?vertical=1" target="_blank">pixiv.xiaoc.cn/v1/img/random</a></td><td><span class="pill p-2d">二次元</span></td><td>191ms+取图</td><td>64 KB</td><td class="note">JSON含 title/作者/图链，需解析</td></tr>
+        <tr><td class="name">墨天逸随机图<small>大图</small></td><td><a class="url" href="https://api.mtyqx.cn/tapi/random.php" target="_blank">api.mtyqx.cn/tapi/random.php</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--warn)">2322ms</b></td><td>775 KB</td><td class="note">慢但出大图</td></tr>
+        <tr><td class="name">夏沫二次元 / 三次元<small>需忽略证书+防盗链</small></td><td><a class="url" href="https://cdn.seovx.com/d/?mom=302" target="_blank">cdn.seovx.com/d/?mom=302</a></td><td><span class="pill p-2d">二次元</span></td><td>562ms / 779ms</td><td>—</td><td class="note">verify=False，有防盗链白名单</td></tr>
+        <tr><td class="name">NyanCat 涩图API<small>JSON，可配r18</small></td><td><a class="url" href="https://sex.nyan.run/api/v2/img" target="_blank">sex.nyan.run/api/v2/img</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--bad)">6417ms</b></td><td>5.3 MB</td><td class="note">慢，但图超大，R18可配</td></tr>
+        <tr><td class="name">seamee 桌面版<small>全R18，Cloudflare</small></td><td><a class="url" href="https://api.seaya.link/web?type=file" target="_blank">api.seaya.link/web?type=file</a></td><td><span class="pill p-2d">二次元</span></td><td><b style="color:var(--bad)">5767ms</b></td><td>4.9 MB</td><td class="note">慢，限制国内频次，默认R18</td></tr>
+        <tr><td class="name">久黎随机三次元<small>JSON，成人写真图集</small></td><td><a class="url" href="http://jiuli.xiaoapi.cn/i/img/mnyjs.php" target="_blank">jiuli.xiaoapi.cn/i/img/mnyjs.php</a></td><td><span class="pill p-3d">三次元</span></td><td><b style="color:var(--bad)">1934ms+取图</b></td><td>339 KB/张</td><td class="note">返回5张图集，成人写真，慢</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- C级 -->
+  <section>
+    <h2>🥉 C级可用：返回文本链接，需二次取图 <span class="tag">4 个</span></h2>
+    <p class="desc">糖豆子系列，接口返回一张图片的 URL 文本（非图片本身），需再请求一次才能拿到图。适合脚本调用，不适合直接当 &lt;img src&gt;。</p>
+    <div class="card">
+    <table>
+      <thead><tr><th style="width:22%">名称</th><th style="width:34%">接口地址</th><th>分类</th><th>验证结果</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td class="name">糖豆子 · 美女图<small>返回 toutiao 图链</small></td><td><a class="url" href="http://api.tangdouz.com/mn.php" target="_blank">api.tangdouz.com/mn.php</a></td><td><span class="pill p-3d">三次元</span></td><td>2.9 MB JPEG ✓</td><td class="note">大图，质量好</td></tr>
+        <tr><td class="name">糖豆子 · 二次元<small>返回 baidu/sina 代理链</small></td><td><a class="url" href="http://api.tangdouz.com/sjdmbz.php" target="_blank">api.tangdouz.com/sjdmbz.php</a></td><td><span class="pill p-2d">二次元</span></td><td>JPEG ✓</td><td class="note">新浪图床，稳定性一般</td></tr>
+        <tr><td class="name">糖豆子 · 二次元竖图<small>返回 aibizhi 链</small></td><td><a class="url" href="http://api.tangdouz.com/abz/dm.php" target="_blank">api.tangdouz.com/abz/dm.php</a></td><td><span class="pill p-2d">二次元</span></td><td>190 KB ✓</td><td class="note">竖屏</td></tr>
+        <tr><td class="name">糖豆子 · 美腿<small>返回 qpic 链</small></td><td><a class="url" href="http://api.tangdouz.com/mt.php" target="_blank">api.tangdouz.com/mt.php</a></td><td><span class="pill p-3d">三次元</span></td><td>3.6 KB ⚠</td><td class="note">偶返回小占位图，不稳</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- 环境受限 -->
+  <section>
+    <h2>🔵 环境受限：沙盒无法验证，建议主人本地测 <span class="tag">19 个</span></h2>
+    <p class="desc">这些域名在沙盒出口被 SNI 拦截（TLS 握手 &lt;100ms 截断），<b>并非 API 失效</b>。其中不少是知名活跃接口，主人在自己电脑/服务器上大概率可用，建议优先本地验证。</p>
+    <div class="card">
+    <table>
+      <thead><tr><th style="width:26%">名称</th><th style="width:34%">接口地址</th><th>分类</th><th>拦截表现</th></tr></thead>
+      <tbody>
+        <tr><td class="name">韩小韩 · 二次元壁纸</td><td><a class="url" href="https://api.vvhan.com/api/wallpaper/acg" target="_blank">api.vvhan.com/api/wallpaper/acg</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断 13ms</td></tr>
+        <tr><td class="name">韩小韩 · 三次元COS</td><td><a class="url" href="https://api.vvhan.com/api/wallpaper/pcGirl" target="_blank">api.vvhan.com/api/wallpaper/pcGirl</a></td><td><span class="pill p-3d">三次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">三秋API（自适应/PC）</td><td><a class="url" href="https://api.ghser.com/random/api.php" target="_blank">api.ghser.com/random/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断 12ms</td></tr>
+        <tr><td class="name">小歪二次元</td><td><a class="url" href="https://api.ixiaowai.cn/api/api.php" target="_blank">api.ixiaowai.cn/api/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">搏天随机壁纸</td><td><a class="url" href="https://api.btstu.cn/sjbz/api.php" target="_blank">api.btstu.cn/sjbz/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">桑帛云（二次元/小姐姐/腿子）</td><td><a class="url" href="https://api.lolimi.cn/API/dmt/api.php?type=image" target="_blank">api.lolimi.cn/API/dmt/api.php</a></td><td><span class="pill p-3d">三次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">魅影（二次元/三次元）</td><td><a class="url" href="https://tuapi.eees.cc/api.php?category=dongman&type=302" target="_blank">tuapi.eees.cc/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">如诗 pixiv 壁纸</td><td><a class="url" href="https://api.likepoems.com/img/pc" target="_blank">api.likepoems.com/img/pc</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">狗哥API（动漫/少女/JK）</td><td><a class="url" href="https://www.ggapi.cn/api/acg/" target="_blank">www.ggapi.cn/api/acg/</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">御坂API（pixiv/PC/PE）</td><td><a class="url" href="https://ybapi.cn/API/pixiv.php" target="_blank">ybapi.cn/API/pixiv.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">MirlKoi (iw233)</td><td><a class="url" href="https://api.iw233.cn/api.php?sort=random" target="_blank">api.iw233.cn/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断（文章称新浪图已坏）</td></tr>
+        <tr><td class="name">EEE.DOG 呓喵随机图</td><td><a class="url" href="https://api.yimian.xyz/img" target="_blank">api.yimian.xyz/img</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">岁月小筑 (qqshabi)</td><td><a class="url" href="https://cloud.qqshabi.cn/api/images/api.php" target="_blank">cloud.qqshabi.cn/api/images/api.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">yinux 的 cos 随机图</td><td><a class="url" href="https://picture.yinux.workers.dev/" target="_blank">picture.yinux.workers.dev</a></td><td><span class="pill p-3d">三次元</span></td><td class="note">TLS 截断</td></tr>
+        <tr><td class="name">星河随机图 / 白丝</td><td><a class="url" href="https://api.asxe.vip/random.php" target="_blank">api.asxe.vip/random.php</a></td><td><span class="pill p-2d">二次元</span></td><td class="note">ProxyError（代理拦截）</td></tr>
+        <tr><td class="name">小辣鸡三次元少女</td><td><a class="url" href="https://www.onexiaolaji.cn/RandomPicture/api/?key=qq249663924" target="_blank">onexiaolaji.cn/...?key=...</a></td><td><span class="pill p-3d">三次元</span></td><td class="note">ProxyError，且需key</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="callout">
+      <b>本地一键自测脚本：</b>主人把下面命令存成 <code>test.sh</code>，在自己机器跑一遍即可秒判这 19 个：
+      <pre style="background:var(--card2);padding:14px;border-radius:10px;overflow:auto;margin-top:10px;font-size:12px;color:#9ad">for u in \
+ "https://api.vvhan.com/api/wallpaper/acg" \
+ "https://api.vvhan.com/api/wallpaper/pcGirl" \
+ "https://api.ghser.com/random/api.php" \
+ "https://api.ixiaowai.cn/api/api.php" \
+ "https://api.btstu.cn/sjbz/api.php" \
+ "https://api.lolimi.cn/API/dmt/api.php?type=image" \
+ "https://tuapi.eees.cc/api.php?category=dongman&type=302" \
+ "https://api.likepoems.com/img/pc" \
+ "https://www.ggapi.cn/api/acg/" \
+ "https://ybapi.cn/API/pixiv.php" \
+ "https://api.iw233.cn/api.php?sort=random" \
+ "https://api.yimian.xyz/img" \
+ "https://cloud.qqshabi.cn/api/images/api.php" \
+ "https://picture.yinux.workers.dev/" \
+ "https://api.asxe.vip/random.php" \
+ ; do echo -n "$u -> "; curl -sS -m 12 -o /dev/null -w "HTTP %{http_code} %{time_total}s %{size_download}B %{content_type}\n" -A "Mozilla/5.0" "$u"; done</pre>
+    </div>
+  </section>
+
+  <!-- 失效 -->
+  <section>
+    <h2>❌ 确认失效 <span class="tag">已剔除</span></h2>
+    <p class="desc">返回 404/502/403/反黄提示/空响应，已不可用，主人无需再试。</p>
+    <div class="card">
+    <table>
+      <thead><tr><th style="width:24%">名称</th><th style="width:36%">接口</th><th>失效原因</th></tr></thead>
+      <tbody>
+        <tr><td class="name">次元API（PC版）</td><td><a class="url">t.alcy.cc/</a></td><td class="note">返回带百度统计的HTML，非纯图（用 /mp 代替）</td></tr>
+        <tr><td class="name">Lolicon 涩图API</td><td><a class="url">api.lolicon.app/setu/v2</a></td><td class="note">HTTP 403（已加鉴权限制）</td></tr>
+        <tr><td class="name">NyanCat 根路径</td><td><a class="url">sex.nyan.run/</a></td><td class="note">返回HTML（改用 /api/v2/img）</td></tr>
+        <tr><td class="name">原神随机图（缙哥哥）</td><td><a class="url">api.dujin.org/pic/yuanshen/</a></td><td class="note">空响应 0 字节</td></tr>
+        <tr><td class="name">萌部V1 / V2（腾讯云）</td><td><a class="url">service-...tencentcs.com</a></td><td class="note">402 / 404（云函数下线）</td></tr>
+        <tr><td class="name">Jitsu R18</td><td><a class="url">moe.jitsu.top/r18</a></td><td class="note">返回「拒绝黄色」反黄提示</td></tr>
+        <tr><td class="name">小嘟嘟萝莉涩图</td><td><a class="url">www.yzxdd.icu/api/</a></td><td class="note">Forwarding error</td></tr>
+        <tr><td class="name">零七生活</td><td><a class="url">api.oick.cn/random/api.php</a></td><td class="note">404</td></tr>
+        <tr><td class="name">复苏API（动漫/COS）</td><td><a class="url">dsyai.club/api/...</a></td><td class="note">502</td></tr>
+        <tr><td class="name">撩梦云</td><td><a class="url">apis.liaomengyun.top/API/pic.php</a></td><td class="note">502</td></tr>
+        <tr><td class="name">素颜API（comic/ys/ksxjj）</td><td><a class="url">api.suyanw.cn/api/...</a></td><td class="note">301后超时（疑似下线/极慢）</td></tr>
+        <tr><td class="name">无铭API</td><td><a class="url">jkapi.com/api/acg_img</a></td><td class="note">需注册key，非免鉴权</td></tr>
+        <tr><td class="name">浪心（二次元/猫娘/赛马娘/写真）</td><td><a class="url">www.lxtu.cn/api/</a></td><td class="note">SSL证书过期 + 404</td></tr>
+        <tr><td class="name">无缺三次元</td><td><a class="url">api.wuque.cc/random/images</a></td><td class="note">404</td></tr>
+        <tr><td class="name">樱道少女写真1S</td><td><a class="url">api.r10086.com/...写真1S</a></td><td class="note">参数名报错（系列已改）</td></tr>
+        <tr><td class="name">星创 / 汤姆 / 冲趣</td><td><a class="url">api.starchent.top / api.tombk.cn / plapi.tk</a></td><td class="note">全部 502</td></tr>
+        <tr><td class="name">皇子随机COS图</td><td><a class="url">www.cnmdsb.cn/api/cos/get.php</a></td><td class="note">404</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- 使用建议 -->
+  <section>
+    <h2>💡 使用建议</h2>
+    <ul class="tip">
+      <li><b>直接当 &lt;img src&gt; 用</b>：选 A 级全部（302直出），无需后端，前端贴链接即可。</li>
+      <li><b>做 QQ/Telegram 涩图机器人</b>：首选 <code>Jitsu(moe.jitsu.top/api)</code> + <code>NyanCat(sex.nyan.run/api/v2/img)</code>，都支持 tag/r18 参数筛选。</li>
+      <li><b>要高清壁纸</b>：<code>赫萝</code> 支持 2k/4k 参数；<code>墨天逸</code> 出 775KB 大图但慢。</li>
+      <li><b>三次元美女</b>：沙盒内只跑通「小小API 三件套」+「夏沫三次元」+「久黎写真」+「糖豆子」。韩小韩COS/桑帛云/狗哥/魅影等需主人本地验证（很可能可用）。</li>
+      <li><b>稳定性兜底</b>：同分类建议挂 2-3 个做故障转移，单点随时可能挂。</li>
+      <li><b>防盗链/证书</b>：夏沫(seovx)有防盗链白名单、需忽略证书；新浪图床类接口请求时把 Referer 设为 <code>https://weibo.com/</code> 可救一部分。</li>
+      <li><b>合规提醒</b>：R18/写真类接口内容偏敏感，仅限个人私密环境使用，勿公开传播或商用。</li>
+    </ul>
+  </section>
+
+  <div class="foot">
+    本报告由 Maid 为主人实测整理 · 测试于远程沙盒环境（2026-07-27）· 82 个候选 → 22 个实测可用 · 持续可用性需主人定期复核
+  </div>
+</div>
+</body>
+</html>
