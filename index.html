@@ -553,7 +553,6 @@ function onImgLoad(imgEl){
   infoSrc.textContent=s.n;
   if(currentMeta&&currentMeta.pid){infoPid.textContent='PID: '+currentMeta.pid+'\n'+currentMeta.title}else{infoPid.textContent=''}
   ambient.classList.add('show');
-  // Update fav icon state
   updateFavIcon()
 }
 
@@ -577,7 +576,7 @@ function toggleFullscreen(){
 }
 function copyUrl(){
   if(!currentImgUrl){showToast('⚠️ 暂无图片');return}
-  navigator.clipboard.writeText(currentImgUrl).then(function(){showToast('✅ 已复制图片链接')}).catch(function(){showToast('❌ 复制失败')})
+  copyToClipboard(currentImgUrl,function(){showToast('✅ 已复制图片链接')},function(){showToast('❌ 复制失败')})
 }
 function doDownload(){
   if(!currentImgUrl){showToast('⚠️ 暂无图片');return}
@@ -685,7 +684,7 @@ function showApiDetail(id){
   var h='<div class="api-title">'+ci.i+' '+s.n+'</div><div class="api-cat">'+s.c+' · '+s.method+' · '+s.type+'</div>';
 
   // URL
-  h+='<div class="api-section"><h4>📡 请求地址</h4><div class="api-code"><span style="color:#e8c86a">'+s.method+'</span> '+s.u+'<button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\''+s.u.replace(/'/g,"\\'")+'\')">复制</button></div></div>';
+  h+='<div class="api-section"><h4>📡 请求地址</h4><div class="api-code"><span style="color:#e8c86a">'+s.method+'</span> '+s.u+'<button class="copy-inline" onclick="copyBtn(this,\''+s.u.replace(/'/g,"\\'")+'\')">复制</button></div></div>';
 
   // Description
   h+='<div class="api-section"><h4>📝 说明</h4><div style="font-size:12px;color:var(--sub);line-height:1.6">'+s.desc+'</div></div>';
@@ -693,7 +692,7 @@ function showApiDetail(id){
   // Request body for POST
   if(s.body){
     var bodyStr=JSON.stringify(s.body,null,2);
-    h+='<div class="api-section"><h4>📦 请求体 (JSON)</h4><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\''+JSON.stringify(s.body).replace(/'/g,"\\'")+'\')">复制</button>'+bodyStr+'</div></div>';
+    h+='<div class="api-section"><h4>📦 请求体 (JSON)</h4><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\''+JSON.stringify(s.body).replace(/'/g,"\\'")+'\')">复制</button>'+bodyStr+'</div></div>';
     // Full params table
     h+='<div class="api-section"><h4>🔧 完整参数说明</h4><table class="param-table">';
     h+='<tr><td>r18</td><td>0 / 1 / 2</td><td>0=全年龄, 1=R18, 2=混合</td></tr>';
@@ -709,14 +708,145 @@ function showApiDetail(id){
     var curlR18='curl -X POST "'+s.u+'" -H "Content-Type: application/json" -d \'{"r18":1,"num":5,"size":["original"]}\'';
     var curlKW='curl -X POST "'+s.u+'" -H "Content-Type: application/json" -d \'{"r18":0,"num":3,"keyword":"初音","size":["original"]}\'';
     h+='<div class="api-section"><h4>💻 cURL 示例</h4>';
-    h+='<div style="font-size:9px;color:var(--muted);margin-bottom:4px">全年龄 1张</div><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\''+curlAll.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \''+JSON.stringify(s.body)+'\'</div>';
-    h+='<div style="font-size:9px;color:var(--muted);margin:8px 0 4px">R18 5张</div><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\''+curlR18.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \'{"r18":1,"num":5,"size":["original"]}\'</div>';
-    h+='<div style="font-size:9px;color:var(--muted);margin:8px 0 4px">关键词搜索 3张</div><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\''+curlKW.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \'{"r18":0,"num":3,"keyword":"初音","size":["original"]}\'</div>';
+    h+='<div style="font-size:9px;color:var(--muted);margin-bottom:4px">全年龄 1张</div><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\''+curlAll.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \''+JSON.stringify(s.body)+'\'</div>';
+    h+='<div style="font-size:9px;color:var(--muted);margin:8px 0 4px">R18 5张</div><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\''+curlR18.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \'{"r18":1,"num":5,"size":["original"]}\'</div>';
+    h+='<div style="font-size:9px;color:var(--muted);margin:8px 0 4px">关键词搜索 3张</div><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\''+curlKW.replace(/'/g,"\\'")+'\')">复制</button>curl -X POST "'+s.u+'" \<br>  -H "Content-Type: application/json" \<br>  -d \'{"r18":0,"num":3,"keyword":"初音","size":["original"]}\'</div>';
     h+='</div>';
     // Response format
     h+='<div class="api-section"><h4>📬 响应格式</h4><div class="api-code" style="color:#a8c8a8">{\n  "code": 0,\n  "data": [{\n    "pid": 12345678,\n    "p": 0,\n    "uid": 123456,\n    "title": "作品标题",\n    "author": "画师名",\n    "r18": false,\n    "width": 2366,\n    "height": 4093,\n    "tags": ["tag1","tag2"],\n    "urls": {\n      "original": "https://...",\n      "regular": "https://..."\n    }\n  }]\n}</div></div>';
   }else{
     // cURL GET
-    h+='<div class="api-section"><h4>💻 cURL 示例</h4><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\'curl -L \\"'+s.u+'\\" -o image.jpg\')">复制</button>curl -L "'+s.u+'" -o image.jpg</div></div>';
+    h+='<div class="api-section"><h4>💻 cURL 示例</h4><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\'curl -L \\"'+s.u+'\\" -o image.jpg\')">复制</button>curl -L "'+s.u+'" -o image.jpg</div></div>';
     // HTML
-    h+='<div class="api-section"><h4>🌐 HTML 用法</h4><div class="api-code"><button class="copy-inline" onclick="event.stopPropagation();copyBtn(this,\'<img srcr>  -H \"Content-Type: application/json\" \\<br>  -d \\''+JSON.stringify(s.body)+'\\'</div>';\n    h+='<div style=\"font-size:9px;color:var(--muted);margin:8px 0 4px\">R18 5张</div><div class=\"api-code\"><button class=\"copy-inline\" onclick=\"event.stopPropagation();copyBtn(this,\\''+curlR18.replace(/'/g,\"\\\\'\")+'\\')\">复制</button>curl -X POST \"'+s.u+'\" \\<br>  -H \"Content-Type: application/json\" \\<br>  -d \\'{\"r18\":1,\"num\":5,\"size\":[\"original\"]}\\'</div>';\n    h+='<div style=\"font-size:9px;color:var(--muted);margin:8px 0 4px\">关键词搜索 3张</div><div class=\"api-code\"><button class=\"copy-inline\" onclick=\"event.stopPropagation();copyBtn(this,\\''+curlKW.replace(/'/g,\"\\\\'\")+'\\')\">复制</button>curl -X POST \"'+s.u+'\" \\<br>  -H \"Content-Type: application/json\" \\<br>  -d \\'{\"r18\":0,\"num\":3,\"keyword\":\"初音\",\"size\":[\"original\"]}\\'</div>';\n    h+='</div>';\n    // Response format\n    h+='<div class=\"api-section\"><h4>📬 响应格式</h4><div class=\"api-code\" style=\"color:#a8c8a8\">{\\n  \"code\": 0,\\n  \"data\": [{\\n    \"pid\": 12345678,\\n    \"p\": 0,\\n    \"uid\": 123456,\\n    \"title\": \"作品标题\",\\n    \"author\": \"画师名\",\\n    \"r18\": false,\\n    \"width\": 2366,\\n    \"height\": 4093,\\n    \"tags\": [\"tag1\",\"tag2\"],\\n    \"urls\": {\\n      \"original\": \"https://...\",\\n      \"regular\": \"https://...\"\\n    }\\n  }]\\n}</div></div>';\n  }else{\n    // cURL GET\n    h+='<div class=\"api-section\"><h4>💻 cURL 示例</h4><div class=\"api-code\"><button class=\"copy-inline\" onclick=\"event.stopPropagation();copyBtn(this,\\'curl -L \\\\\"'+s.u+'\\\\\" -o image.jpg\\')\">复制</button>curl -L \"'+s.u+'\" -o image.jpg</div></div>';\n    // HTML\n    h+='<div class=\"api-section\"><h4>🌐 HTML 用法</h4><div class=\"api-code\"><button class=\"copy-inline\" onclick=\"event.stopPropagation();copyBtn(this,\\'<img src=\\\\"'+s.u+'\\\\\" />\\')\">复制</button>&lt;img src=\"'+s.u+'\" /&gt;</div></div>';\n  }\n\n  // JS fetch example\n  if(s.method==='POST'){\n    h+='<div class=\"api-section\"><h4>📜 JavaScript fetch</h4><div class=\"api-code\"><button class=\"copy-inline\" onclick=\"event.stopPropagation();copyBtn(this,\\'fetch(\\\\\"'+s.u+'\\\\\",{method:\\\\\"POST\\\\\",headers:{\\\\\"Content-Type\\\\\":\\\\\"application/json\\\\\"},body:JSON.stringify({r18:0,num:1,size:[\\\\\"original\\\\\"]})}).then(r=>r.json()).then(d=>console.log(d.data[0].urls.original))\\')\">复制</button>fetch(\"'+s.u+'\", {<br>  method: \"POST\",<br>  headers: {\"Content-Type\": \"application/json\"},<br>  body: JSON.stringify({r18:0,num:1,size:[\"original\"]})<br>}).then(r => r.json())<br>  .then(d => console.log(d.data[0].urls.original))</div></div>';\n  }\n\n  h+='<div class=\"close-row\"><button onclick=\"closeApiDetail()\">关闭</button></div>';\n  $('api-card').innerHTML=h;$('api-modal').classList.add('show');overlay.classList.add('show')\n}\nfunction closeApiDetail(){$('api-modal').classList.remove('show');overlay.classList.remove('show')}\n\n/* ============================================================\n   FAVORITES\n   ============================================================ */\nfunction buildFavsPanel(){\n  $('fav-count-label').textContent=favs.length+'张';\n  var h='';\n  if(!favs.length){h='<div class=\"fav-empty\"><b>💝</b>还没有收藏<br><span style=\"font-size:11px;color:var(--muted)\">浏览图片时点击 ❤ 即可收藏</span></div>'}\n  else{\n    h+='<div class=\"fav-actions-bar\"><button onclick=\"copyAllFavs()\">📋 复制全部链接</button><button class=\"danger\" onclick=\"clearFavs()\">🗑 清空收藏</button></div>';\n    favs.forEach(function(f,i){\n      h+='<div class=\"fav-item\"><img class=\"fav-thumb\" src=\"'+f.u+'\" loading=\"lazy\" onerror=\"this.style.display=\\'none\\'\"><div class=\"fav-info\"><div class=\"fav-name\">'+f.n+'</div><div class=\"fav-url\">'+f.u.substring(0,48)+'…</div></div><div class=\"fav-actions\"><button class=\"fav-act\" title=\"复制\" onclick=\"copyText(\\''+f.u.replace(/'/g,\"\\\\'\")+'\\')\">📋</button><button class=\"fav-act\" title=\"删除\" onclick=\"removeFav('+i+')\" style=\"color:var(--danger)\">✕</button></div></div>';\n    })\n  }\n  $('favs-body').innerHTML=h\n}\nfunction copyAllFavs(){\n  if(!favs.length){showToast('⚠️ 收藏夹为空');return}\n  var urls=favs.map(function(f){return f.u}).join('\\n');\n  navigator.clipboard.writeText(urls).then(function(){showToast('✅ 已复制 '+favs.length+' 个链接')}).catch(function(){showToast('❌ 复制失败')})\n}\nfunction clearFavs(){favs=[];localStorage.setItem('mg_favs',[]);favDot.style.display='none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent='0张';showToast('🗑 已清空')}\nfunction removeFav(i){favs.splice(i,1);localStorage.setItem('mg_favs',JSON.stringify(favs));favDot.style.display=favs.length?'block':'none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent=favs.length+'张';showToast('已删除')}\n\n/* ============================================================\n   UTILS\n   ============================================================ */\nfunction showToast(m){clearTimeout(ttm);toast.textContent=m;toast.classList.add('show');ttm=setTimeout(function(){toast.classList.remove('show')},1800)}\nfunction copyText(t){navigator.clipboard.writeText(t).then(function(){showToast('✅ 已复制')}).catch(function(){showToast('❌ 复制失败')})}\nfunction copyBtn(btn,t){\n  navigator.clipboard.writeText(t).then(function(){btn.textContent='已复制';btn.classList.add('copied');setTimeout(function(){btn.textContent='复制';btn.classList.remove('copied')},1500)}).catch(function(){showToast('❌ 复制失败')})\n}\nfunction toggleHelp(){$('help-modal').classList.toggle('show')}\n\n/* ============================================================\n   TOUCH GESTURES\n   ============================================================ */\nvar tx=0,ty=0,lt=0,longPressTimer=null;\nfunction tS(e){\n  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;\n  tx=e.touches[0].clientX;ty=e.touches[0].clientY;\n  clearTimeout(longPressTimer);longPressTimer=setTimeout(function(){toggleFav()},650)\n}\nfunction tE(e){\n  clearTimeout(longPressTimer);\n  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;\n  var dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;\n  if(Math.abs(dx)<8&&Math.abs(dy)<8){\n    var n=Date.now();if(n-lt<300){toggleFullscreen();lt=0}else{lt=n;if(!at)hp>=HI.length-1?load():goH(1)}\n    return\n  }\n  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>45){dx>0?goH(-1):(hp>=HI.length-1?load():goH(1))}\n}\n\n/* ============================================================\n   BIND\n   ============================================================ */\n$('btn-fullscreen').onclick=toggleFullscreen;$('btn-copy').onclick=copyUrl;$('btn-download').onclick=doDownload;$('btn-fav').onclick=toggleFav;$('btn-help').onclick=toggleHelp;\n$('btn-prev').onclick=function(){goH(-1)};$('btn-next').onclick=function(){hp>=HI.length-1?load():goH(1)};\n$('btn-auto').onclick=function(){at?stopAuto():startAuto()};$('btn-switch').onclick=switchSrc;\n$('btn-sources').onclick=function(){openDrawer('sources')};$('btn-favs').onclick=function(){openDrawer('favs')};\n$('arrow-left').onclick=function(){goH(-1)};$('arrow-right').onclick=function(){hp>=HI.length-1?load():goH(1)};\noverlay.onclick=closeAll;\nstage.addEventListener('click',function(e){\n  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;\n  showUI();if(!at&&!ld){hp>=HI.length-1?load():goH(1)}\n});\nstage.addEventListener('touchstart',tS,{passive:false});stage.addEventListener('touchend',tE,{passive:false});\nstage.addEventListener('touchmove',function(){clearTimeout(longPressTimer)},{passive:false});\nstage.addEventListener('dblclick',function(e){if(!e.target.closest('button'))toggleFullscreen()});\n\n// Mouse hover on stage edges → show arrows\nstage.addEventListener('mousemove',function(e){\n  if(window.innerWidth<769)return;\n  var x=e.clientX, w=window.innerWidth;\n  document.getElementById('arrow-left').style.opacity=x<80?'0.6':'0.2';\n  document.getElementById('arrow-right').style.opacity=x>w-80?'0.6':'0.2';\n  // Show info overlay when mouse is near bottom\n  var y=e.clientY, h=window.innerHeight;\n  infoOverlay.classList.toggle('show',y>h-120)\n});\n\ndocument.addEventListener('keydown',function(e){\n  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;\n  switch(e.key){\n    case'ArrowRight':e.preventDefault();if(!ld)hp>=HI.length-1?load():goH(1);break;\n    case'ArrowLeft':e.preventDefault();if(!ld)goH(-1);break;\n    case' ':e.preventDefault();if(!ld&&!at)hp>=HI.length-1?load():goH(1);break;\n    case'a':case'A':e.preventDefault();at?stopAuto():startAuto();break;\n    case'f':case'F':e.preventDefault();toggleFullscreen();break;\n    case'c':case'C':e.preventDefault();copyUrl();break;\n    case'd':case'D':e.preventDefault();doDownload();break;\n    case's':case'S':e.preventDefault();switchSrc();break;\n    case'v':case'V':e.preventDefault();openDrawer('favs');break;\n    case'Tab':e.preventDefault();openDrawer('sources');break;\n    case'Escape':closeAll();if($('help-modal').classList.contains('show'))toggleHelp();break;\n    case'h':case'H':e.preventDefault();toggleHelp();break;\n  }\n});\n$('help-modal').onclick=function(e){if(e.target===$('help-modal'))toggleHelp()};\n$('api-modal').onclick=function(e){if(e.target===$('api-modal'))closeApiDetail()};\n\n// Expose\nwindow.selectSrc=selectSrc;window.showApiDetail=showApiDetail;window.closeApiDetail=closeApiDetail;\nwindow.copyText=copyText;window.copyBtn=copyBtn;window.copyAllFavs=copyAllFavs;window.clearFavs=clearFavs;window.removeFav=removeFav;\nwindow.toggleHelp=toggleHelp;window.doRetry=doRetry;window.closeDrawer=closeDrawer;window.closeAll=closeAll;\n\n/* ============================================================\n   INIT\n   ============================================================ */\nupdateBadge();updateFavIcon();load(true);showLoading();\nshowUI();resetUITimer();\nconsole.log('💫 MoeGallery v3 · '+KS.length+' 美少女图源 · Lolicon API v2 · 收藏 · 全屏 · 自适应');\n})();\n</script>\n</body>\n</html>"}]}
+    h+='<div class="api-section"><h4>🌐 HTML 用法</h4><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\'<img src=\\"'+s.u+'\\" />\')">复制</button>&lt;img src="'+s.u+'" /&gt;</div></div>';
+  }
+
+  // JS fetch example
+  if(s.method==='POST'){
+    h+='<div class="api-section"><h4>📜 JavaScript fetch</h4><div class="api-code"><button class="copy-inline" onclick="copyBtn(this,\'fetch(\\"'+s.u+'\\",{method:\\"POST\\",headers:{\\"Content-Type\\":\\"application/json\\"},body:JSON.stringify({r18:0,num:1,size:[\\"original\\"]})}).then(r=>r.json()).then(d=>console.log(d.data[0].urls.original))\')">复制</button>fetch("'+s.u+'", {<br>  method: "POST",<br>  headers: {"Content-Type": "application/json"},<br>  body: JSON.stringify({r18:0,num:1,size:["original"]})<br>}).then(r => r.json())<br>  .then(d => console.log(d.data[0].urls.original))</div></div>';
+  }
+
+  h+='<div class="close-row"><button onclick="closeApiDetail()">关闭</button></div>';
+  $('api-card').innerHTML=h;$('api-modal').classList.add('show');overlay.classList.add('show')
+}
+function closeApiDetail(){$('api-modal').classList.remove('show');overlay.classList.remove('show')}
+
+/* ============================================================
+   FAVORITES
+   ============================================================ */
+function buildFavsPanel(){
+  $('fav-count-label').textContent=favs.length+'张';
+  var h='';
+  if(!favs.length){h='<div class="fav-empty"><b>💝</b>还没有收藏<br><span style="font-size:11px;color:var(--muted)">浏览图片时点击 ❤ 即可收藏</span></div>'}
+  else{
+    h+='<div class="fav-actions-bar"><button onclick="copyAllFavs()">📋 复制全部链接</button><button class="danger" onclick="clearFavs()">🗑 清空收藏</button></div>';
+    favs.forEach(function(f,i){
+      h+='<div class="fav-item"><img class="fav-thumb" src="'+f.u+'" loading="lazy" onerror="this.style.display=\'none\'"><div class="fav-info"><div class="fav-name">'+f.n+'</div><div class="fav-url">'+f.u.substring(0,48)+'…</div></div><div class="fav-actions"><button class="fav-act" title="复制" onclick="copyText(\''+f.u.replace(/'/g,"\\'")+'\')">📋</button><button class="fav-act" title="删除" onclick="removeFav('+i+')" style="color:var(--danger)">✕</button></div></div>';
+    })
+  }
+  $('favs-body').innerHTML=h
+}
+function copyAllFavs(){
+  if(!favs.length){showToast('⚠️ 收藏夹为空');return}
+  var urls=favs.map(function(f){return f.u}).join('\n');
+  navigator.clipboard.writeText(urls).then(function(){showToast('✅ 已复制 '+favs.length+' 个链接')}).catch(function(){showToast('❌ 复制失败')})
+}
+function clearFavs(){favs=[];localStorage.setItem('mg_favs',[]);favDot.style.display='none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent='0张';showToast('🗑 已清空')}
+function removeFav(i){favs.splice(i,1);localStorage.setItem('mg_favs',JSON.stringify(favs));favDot.style.display=favs.length?'block':'none';updateFavIcon();buildFavsPanel();$('fav-count-label').textContent=favs.length+'张';showToast('已删除')}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function showToast(m){clearTimeout(ttm);toast.textContent=m;toast.classList.add('show');ttm=setTimeout(function(){toast.classList.remove('show')},1800)}
+function copyToClipboard(t,ok,fail){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(fail);return}
+  try{var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){fail()}
+}
+function copyText(t){copyToClipboard(t,function(){showToast('✅ 已复制')},function(){showToast('❌ 复制失败')})}
+function copyBtn(btn,t){
+  copyToClipboard(t,function(){btn.textContent='已复制';btn.classList.add('copied');setTimeout(function(){btn.textContent='复制';btn.classList.remove('copied')},1500)},function(){showToast('❌ 复制失败')})
+}
+function toggleHelp(){$('help-modal').classList.toggle('show')}
+
+/* ============================================================
+   TOUCH GESTURES
+   ============================================================ */
+var tx=0,ty=0,lt=0,longPressTimer=null;
+function tS(e){
+  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;
+  tx=e.touches[0].clientX;ty=e.touches[0].clientY;
+  clearTimeout(longPressTimer);longPressTimer=setTimeout(function(){toggleFav()},650)
+}
+function tE(e){
+  clearTimeout(longPressTimer);
+  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;
+  var dx=e.changedTouches[0].clientX-tx, dy=e.changedTouches[0].clientY-ty;
+  if(Math.abs(dx)<8&&Math.abs(dy)<8){
+    var n=Date.now();if(n-lt<300){toggleFullscreen();lt=0}else{lt=n;if(!at)hp>=HI.length-1?load():goH(1)}
+    return
+  }
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>45){dx>0?goH(-1):(hp>=HI.length-1?load():goH(1))}
+}
+
+/* ============================================================
+   BIND
+   ============================================================ */
+$('btn-fullscreen').onclick=toggleFullscreen;$('btn-copy').onclick=copyUrl;$('btn-download').onclick=doDownload;$('btn-fav').onclick=toggleFav;$('btn-help').onclick=toggleHelp;
+$('btn-prev').onclick=function(){goH(-1)};$('btn-next').onclick=function(){hp>=HI.length-1?load():goH(1)};
+$('btn-auto').onclick=function(){at?stopAuto():startAuto()};$('btn-switch').onclick=switchSrc;
+$('btn-sources').onclick=function(){openDrawer('sources')};$('btn-favs').onclick=function(){openDrawer('favs')};
+$('arrow-left').onclick=function(){goH(-1)};$('arrow-right').onclick=function(){hp>=HI.length-1?load():goH(1)};
+overlay.onclick=closeAll;
+stage.addEventListener('click',function(e){
+  if(e.target.closest('button,.drawer,.api-modal,.help-modal,.overlay,.topbar,.bottombar,.edge-arrow'))return;
+  showUI();if(!at&&!ld){hp>=HI.length-1?load():goH(1)}
+});
+stage.addEventListener('touchstart',tS,{passive:false});stage.addEventListener('touchend',tE,{passive:false});
+stage.addEventListener('touchmove',function(){clearTimeout(longPressTimer)},{passive:false});
+stage.addEventListener('dblclick',function(e){if(!e.target.closest('button'))toggleFullscreen()});
+
+// Mouse hover
+stage.addEventListener('mousemove',function(e){
+  if(window.innerWidth<769)return;
+  var x=e.clientX, w=window.innerWidth;
+  document.getElementById('arrow-left').style.opacity=x<80?'0.6':'0.2';
+  document.getElementById('arrow-right').style.opacity=x>w-80?'0.6':'0.2';
+  var y=e.clientY, h=window.innerHeight;
+  infoOverlay.classList.toggle('show',y>h-120)
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key){
+    case'ArrowRight':e.preventDefault();if(!ld)hp>=HI.length-1?load():goH(1);break;
+    case'ArrowLeft':e.preventDefault();if(!ld)goH(-1);break;
+    case' ':e.preventDefault();if(!ld&&!at)hp>=HI.length-1?load():goH(1);break;
+    case'a':case'A':e.preventDefault();at?stopAuto():startAuto();break;
+    case'f':case'F':e.preventDefault();toggleFullscreen();break;
+    case'c':case'C':e.preventDefault();copyUrl();break;
+    case'd':case'D':e.preventDefault();doDownload();break;
+    case's':case'S':e.preventDefault();switchSrc();break;
+    case'v':case'V':e.preventDefault();openDrawer('favs');break;
+    case'Tab':e.preventDefault();openDrawer('sources');break;
+    case'Escape':closeAll();if($('help-modal').classList.contains('show'))toggleHelp();break;
+    case'h':case'H':e.preventDefault();toggleHelp();break;
+  }
+});
+$('help-modal').onclick=function(e){if(e.target===$('help-modal'))toggleHelp()};
+$('api-modal').onclick=function(e){if(e.target===$('api-modal'))closeApiDetail()};
+
+// Expose
+window.selectSrc=selectSrc;window.showApiDetail=showApiDetail;window.closeApiDetail=closeApiDetail;
+window.copyText=copyText;window.copyBtn=copyBtn;window.copyAllFavs=copyAllFavs;window.clearFavs=clearFavs;window.removeFav=removeFav;
+window.toggleHelp=toggleHelp;window.doRetry=doRetry;window.closeDrawer=closeDrawer;window.closeAll=closeAll;
+
+/* ============================================================
+   INIT
+   ============================================================ */
+updateBadge();updateFavIcon();load(true);showLoading();
+showUI();resetUITimer();
+console.log('💫 MoeGallery v3 · '+KS.length+' 美少女图源 · Lolicon API v2 · 收藏 · 全屏 · 自适应');
+})();
+</script>
+</body>
+</html>
