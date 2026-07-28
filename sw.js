@@ -39,7 +39,8 @@ async function handleLoliconRequest(request) {
 
   try {
     // Service Workers can make cross-origin fetches without CORS blocking
-    const response = await fetch(request);
+    // Clone the request to preserve the body (it can only be consumed once)
+    const response = await fetch(request.clone());
     const data = await response.json();
 
     return new Response(JSON.stringify(data), {
