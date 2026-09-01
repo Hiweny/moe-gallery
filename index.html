@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MoeGallery · 精品二次元</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0b16;
+  --bg-soft:#141425;
+  --card:rgba(255,255,255,.055);
+  --card-b:rgba(255,255,255,.12);
+  --glass:rgba(18,18,33,.55);
+  --text:#f2f2fa;
+  --text2:#9a9ab4;
+  --accent:#ff7ab6;
+  --accent2:#8ab4ff;
+  --r-lg:24px;
+  --r-md:16px;
+  --r-sm:12px;
+  --shadow:0 20px 60px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.3);
+}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  background:
+    radial-gradient(1100px 700px at 8% -5%, rgba(255,122,182,.18), transparent 60%),
+    radial-gradient(900px 650px at 100% 105%, rgba(138,180,255,.15), transparent 60%),
+    radial-gradient(700px 500px at 50% 50%, rgba(180,140,255,.06), transparent 70%),
+    var(--bg);
+}
+
+/* ===== Top Bar ===== */
+.topbar{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:14px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:linear-gradient(180deg, rgba(11,11,22,.85), rgba(11,11,22,0));
+  backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:.3px}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 14px var(--accent)}
+.top-actions{display:flex;gap:8px}
+.btn{
+  border:1px solid var(--card-b);background:var(--card);color:var(--text);
+  padding:8px 14px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:all .2s cubic-bezier(.4,0,.2,1);
+  display:inline-flex;align-items:center;gap:6px;user-select:none;white-space:nowrap;
+}
+.btn:hover{background:rgba(255,255,255,.1);transform:translateY(-1px);border-color:rgba(255,122,182,.45);box-shadow:0 4px 16px rgba(255,122,182,.15)}
+.btn:active{transform:translateY(0)}
+.btn.active{background:linear-gradient(135deg,rgba(255,122,182,.28),rgba(138,180,255,.28));border-color:rgba(255,255,255,.32);color:#fff;box-shadow:0 4px 20px rgba(255,122,182,.25)}
+.btn svg{width:16px;height:16px;flex-shrink:0}
+
+/* ===== Source Chips ===== */
+.sources{
+  position:fixed;top:62px;left:0;right:0;z-index:40;
+  padding:10px 16px 14px;display:flex;gap:10px;overflow-x:auto;
+  scrollbar-width:none;
+  background:linear-gradient(180deg, rgba(11,11,22,.55), rgba(11,11,22,0));
+}
+.sources::-webkit-scrollbar{display:none}
+.chip{
+  flex-shrink:0;padding:10px 18px;border-radius:14px;
+  background:var(--card);border:1px solid var(--card-b);
+  color:var(--text2);font-size:13px;cursor:pointer;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  font-weight:500;letter-spacing:.2px;
+}
+.chip .badge{
+  font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700;letter-spacing:.5px;
+}
+.chip .badge.h{background:rgba(138,180,255,.2);color:var(--accent2)}
+.chip .badge.v{background:rgba(255,122,182,.2);color:var(--accent)}
+.chip:hover{color:var(--text);border-color:rgba(255,255,255,.28);transform:translateY(-1px)}
+.chip.active{
+  color:#fff;
+  background:linear-gradient(135deg,rgba(255,122,182,.38),rgba(138,180,255,.38));
+  border-color:rgba(255,255,255,.32);
+  box-shadow:0 6px 24px rgba(255,122,182,.28);
+  transform:translateY(-2px);
+}
+
+/* ===== Main Stage ===== */
+.stage{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:124px 24px 100px;
+}
+@media (max-width:768px){.stage{padding:118px 14px 96px}}
+
+/* ===== Card (glass rounded) ===== */
+.card{
+  position:relative;
+  width:100%;height:100%;max-width:1100px;
+  border-radius:var(--r-lg);
+  background:var(--glass);
+  border:1px solid var(--card-b);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.2);
+  backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  transition:box-shadow .3s ease, transform .3s ease;
+}
+.card::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,rgba(255,122,182,.06),transparent 40%,rgba(138,180,255,.05));
+}
+.card::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 80px rgba(0,0,0,.25);
+}
+
+/* Image wrapper - fills card; object-fit contain so image self-adapts */
+.img-wrap{
+  position:relative;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  padding:10px;
+}
+.img-wrap img{
+  max-width:100%;max-height:100%;
+  width:auto;height:auto;
+  object-fit:contain;
+  display:block;
+  opacity:0;
+  transform:scale(1.02);
+  transition:opacity .5s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+  border-radius:calc(var(--r-lg) - 6px);
+  user-select:none;-webkit-user-drag:none;
+  box-shadow:0 10px 40px rgba(0,0,0,.4);
+  background:rgba(0,0,0,.2);
+}
+.img-wrap img.loaded{opacity:1;transform:scale(1)}
+
+/* ===== Loading / Error ===== */
+.state{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+}
+.state.show{display:flex}
+.spinner{
+  width:42px;height:42px;border-radius:50%;
+  border:3px solid rgba(255,255,255,.1);
+  border-top-color:var(--accent);
+  border-right-color:var(--accent2);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-tip{font-size:12px;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
+.err-icon{font-size:44px;opacity:.55;margin-bottom:4px}
+.err-msg{color:var(--text2);font-size:13px;line-height:1.7;max-width:300px;text-align:center}
+.err-msg small{display:block;margin-top:8px;font-size:11px;opacity:.7}
+.retry-btn{
+  margin-top:8px;padding:8px 20px;border-radius:var(--r-sm);
+  border:1px solid var(--card-b);background:var(--card);color:var(--text);
+  cursor:pointer;font-size:13px;backdrop-filter:blur(10px);
+  transition:all .2s;
+}
+.retry-btn:hover{background:rgba(255,122,182,.2);border-color:var(--accent)}
+
+/* ===== Floating tags on card ===== */
+.tag{
+  position:absolute;top:16px;z-index:5;
+  padding:7px 14px;border-radius:var(--r-sm);
+  background:rgba(0,0,0,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.1);
+  font-size:12px;color:#fff;letter-spacing:.4px;
+  display:flex;align-items:center;gap:7px;
+  pointer-events:none;font-weight:500;
+}
+.tag.left{left:16px}
+.tag.right{right:16px}
+.tag .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80;animation:pulse 2s infinite}
+@keyframes pulse{50%{opacity:.45}}
+
+.icon-btn{
+  position:absolute;top:16px;right:16px;z-index:5;
+  width:38px;height:38px;border-radius:var(--r-sm);
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:all .2s;
+}
+.icon-btn:hover{background:rgba(255,122,182,.35);border-color:var(--accent);transform:scale(1.05)}
+.icon-btn svg{width:17px;height:17px}
+
+/* ===== Bottom Controls ===== */
+.controls{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+  z-index:40;display:flex;gap:4px;align-items:center;
+  padding:8px;border-radius:20px;
+  background:var(--glass);border:1px solid var(--card-b);
+  backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:var(--shadow);
+}
+.ctrl-btn{
+  width:46px;height:46px;border-radius:14px;border:none;background:transparent;
+  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,.08);color:var(--accent)}
+.ctrl-btn:active{transform:scale(.92)}
+.ctrl-btn.active{color:var(--accent)}
+.ctrl-btn.active::after{
+  content:"";position:absolute;bottom:4px;left:50%;transform:translateX(-50%);
+  width:16px;height:2px;border-radius:2px;background:var(--accent);
+}
+.ctrl-btn svg{width:20px;height:20px}
+.ctrl-divider{width:1px;height:24px;background:rgba(255,255,255,.12);margin:0 4px}
+
+/* ===== Toast ===== */
+.toast{
+  position:fixed;top:90px;left:50%;transform:translate(-50%,-20px);
+  z-index:100;padding:11px 20px;border-radius:var(--r-sm);
+  background:rgba(20,20,35,.9);border:1px solid var(--card-b);
+  color:#fff;font-size:13px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.4,0,.2,1);
+  font-weight:500;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== Modal ===== */
+.modal-bg{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  animation:fadeIn .2s ease;
+}
+.modal-bg.show{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  position:relative;width:100%;max-width:500px;border-radius:var(--r-lg);
+  background:linear-gradient(160deg,rgba(30,28,52,.92),rgba(20,20,35,.92));
+  border:1px solid var(--card-b);
+  backdrop-filter:blur(30px) saturate(140%);-webkit-backdrop-filter:blur(30px) saturate(140%);
+  box-shadow:var(--shadow);padding:26px;
+  animation:slideUp .3s cubic-bezier(.4,0,.2,1);
+  max-height:90vh;overflow-y:auto;
+}
+@keyframes slideUp{from{transform:translateY(20px) scale(.98);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.modal h3{font-size:20px;margin-bottom:4px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.modal .sub{color:var(--text2);font-size:13px;margin-bottom:20px}
+.info-row{margin-bottom:14px}
+.info-row label{display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:6px;font-weight:600}
+.info-row code{
+  display:block;width:100%;padding:12px 14px;border-radius:var(--r-sm);
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.06);
+  font-family:"SF Mono",ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;
+  color:#c8d6ff;word-break:break-all;line-height:1.6;
+}
+.copy-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+.copy-grid .btn{justify-content:center;padding:10px 12px;font-weight:500}
+.copy-grid .btn.full{grid-column:1/-1;background:linear-gradient(135deg,rgba(255,122,182,.2),rgba(138,180,255,.2));border-color:rgba(255,122,182,.3)}
+.copy-grid .btn.full:hover{background:linear-gradient(135deg,rgba(255,122,182,.3),rgba(138,180,255,.3));border-color:var(--accent)}
+.modal-close{
+  position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:10px;
+  border:none;background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.modal-close:hover{background:rgba(255,255,255,.12);color:#fff;transform:rotate(90deg)}
+
+/* ===== Responsive ===== */
+@media (max-width:600px){
+  .logo span.pc-only{display:none}
+  .topbar{padding:12px 14px}
+  .btn{padding:7px 12px;font-size:12px}
+  .btn span.pc-only{display:none}
+  .sources{padding:8px 12px 10px}
+  .chip{padding:8px 14px;font-size:12.5px}
+  .controls{bottom:calc(18px + env(safe-area-inset-bottom));padding:6px}
+  .ctrl-btn{width:42px;height:42px}
+  .tag{padding:6px 12px;font-size:11px;top:12px}
+  .tag.left{left:12px}
+  .icon-btn{top:12px;right:12px;width:36px;height:36px}
+  .stage{padding:110px 10px 86px}
+  .card{border-radius:20px}
+  .img-wrap{padding:6px}
+  .img-wrap img{border-radius:16px}
+}
+@media (max-height:600px) and (orientation:landscape){
+  .stage{padding:90px 16px 78px}
+  .card{max-width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <div class="logo">
+    <span class="logo-dot"></span>
+    <span>MoeGallery</span>
+    <span class="pc-only" style="font-weight:400;font-size:12px;color:var(--text2);margin-left:4px">· 精品二次元</span>
+  </div>
+  <div class="top-actions">
+    <button class="btn" id="btnAuto" title="自动播放 (Space)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+      <span class="pc-only">自动</span>
+    </button>
+    <button class="btn" id="btnFs" title="全屏 (F)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Sources -->
+<nav class="sources" id="sources"></nav>
+
+<!-- Main Stage -->
+<main class="stage">
+  <div class="card" id="card">
+    <div class="tag left"><span class="dot"></span><span id="srcName">—</span></div>
+    <button class="icon-btn" id="btnInfo" title="查看接口调用信息">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+    </button>
+    <div class="img-wrap" id="imgWrap">
+      <img id="mainImg" alt="ACG" referrerpolicy="no-referrer">
+      <div class="state show" id="loader">
+        <div class="spinner"></div>
+        <div class="state-tip">Loading</div>
+      </div>
+      <div class="state" id="err">
+        <div class="err-icon">✕</div>
+        <div class="err-msg" id="errMsg">加载失败<small>请检查网络或切换图源</small></div>
+        <button class="retry-btn" id="btnRetry">重新加载</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Bottom Controls -->
+<div class="controls">
+  <button class="ctrl-btn" id="btnPrev" title="上一张 (←)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="ctrl-btn" id="btnNext" title="下一张 (→)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+  <div class="ctrl-divider"></div>
+  <button class="ctrl-btn" id="btnCopy" title="复制图片链接">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+  </button>
+  <button class="ctrl-btn" id="btnDl" title="下载图片">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+  </button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- API Info Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <h3 id="mTitle">API 信息</h3>
+    <div class="sub" id="mSub">点击下方按钮复制调用代码</div>
+    <div class="info-row"><label>Endpoint URL</label><code id="mUrl"></code></div>
+    <div class="info-row"><label>Method</label><code>GET</code></div>
+    <div class="info-row"><label>Authentication</label><code>None · 无需密钥</code></div>
+    <div class="info-row"><label>Response</label><code id="mResp"></code></div>
+    <div class="copy-grid">
+      <button class="btn" data-copy="url">复制 URL</button>
+      <button class="btn" data-copy="curl">cURL</button>
+      <button class="btn" data-copy="js">JavaScript</button>
+      <button class="btn" data-copy="html">HTML</button>
+      <button class="btn full" data-copy="all">📋 复制全部调用信息</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======================= API SOURCES =======================
+// 仅保留已实测可用的精品二次元图源（全部实测于 2026-08-31）
+const SOURCES = [
+  {
+    id:'loli-pe',
+    name:'LoliAPI · 竖屏',
+    orient:'portrait',
+    endpoint:'https://www.loliapi.com/acg/pe/',
+    responseType:'image',
+    respDesc:'image/webp · 竖屏二次元壁纸（实测约 2000×3421）',
+    desc:'移动端竖屏二次元随机壁纸'
+  },
+  {
+    id:'loli-pc',
+    name:'LoliAPI · 横屏',
+    orient:'landscape',
+    endpoint:'https://www.loliapi.com/acg/pc/',
+    responseType:'image',
+    respDesc:'image/webp · 横屏二次元壁纸（实测 1920×1080）',
+    desc:'桌面端横屏二次元随机壁纸'
+  },
+  {
+    id:'yujn-acg',
+    name:'雨今 · 高质量 ACG',
+    orient:'landscape',
+    endpoint:'https://api.yujn.cn/api/ACG.php',
+    responseType:'image',
+    respDesc:'image/jpeg · 高质量 ACG 插画（302 重定向到 CDN，实测 3000×1688）',
+    desc:'精品二次元插画 · 横屏'
+  },
+  {
+    id:'jitsu',
+    name:'Jitsu · 二次元',
+    orient:'portrait',
+    endpoint:'https://moe.jitsu.top/api',
+    responseType:'image',
+    respDesc:'image/jpeg · Jitsu 二次元随机图（实测约 2650×4144 竖屏）',
+    desc:'Jitsu 精品二次元随机插画 · 竖屏'
+  },
+  {
+    id:'alcy-ys',
+    name:'次元 · 二次元',
+    orient:'landscape',
+    endpoint:'https://t.alcy.cc/ys/',
+    responseType:'image',
+    respDesc:'image/webp · 二次元随机图（实测约 5000×2800 横屏）',
+    desc:'综合二次元随机插画 · 高清横屏'
+  },
+  {
+    id:'alcy-ycy',
+    name:'次元 · 横屏',
+    orient:'landscape',
+    endpoint:'https://t.alcy.cc/ycy/',
+    responseType:'image',
+    respDesc:'image/webp · 横屏二次元随机图（实测 5120×2816）',
+    desc:'超高清横屏二次元壁纸'
+  }
+];
+
+// ======================= PROXY CHAIN =======================
+// 直连优先 → 公共代理兜底
+const PROXIES = [
+  u => u,                                                       // direct
+  u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+  u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+];
+const IMG_TIMEOUT = 10000;
+const FETCH_TIMEOUT = 12000;
+
+// ======================= STATE =======================
+let currentIdx = 0;
+let currentAbort = null;
+let autoTimer = null;
+let currentImgUrl = '';
+let currentBlobUrl = null;
+
+// ======================= DOM =======================
+const $ = id => document.getElementById(id);
+const sourcesEl = $('sources');
+const card = $('card');
+const img = $('mainImg');
+const loader = $('loader');
+const errBox = $('err');
+const errMsg = $('errMsg');
+const srcName = $('srcName');
+const toast = $('toast');
+const modal = $('modal');
+
+// ======================= Source Chips =======================
+SOURCES.forEach((s, i) => {
+  const el = document.createElement('button');
+  el.className = 'chip' + (i === 0 ? ' active' : '');
+  el.dataset.idx = i;
+  const tag = s.orient === 'landscape'
+    ? '<span class="badge h">横</span>'
+    : '<span class="badge v">竖</span>';
+  el.innerHTML = `<span>${s.name}</span>${tag}`;
+  el.addEventListener('click', () => selectSource(i));
+  sourcesEl.appendChild(el);
+});
+
+// ======================= Image Loading =======================
+function showState(which, reason) {
+  loader.classList.toggle('show', which === 'loading');
+  errBox.classList.toggle('show', which === 'error');
+  if (which === 'image') {
+    img.classList.add('loaded');
+  } else {
+    img.classList.remove('loaded');
+  }
+  if (which === 'error' && reason) {
+    errMsg.innerHTML = reason + '<small>点击重试或切换其他图源</small>';
+  }
+}
+
+function cleanupBlob() {
+  if (currentBlobUrl && currentImgUrl === currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+}
+
+async function loadImage() {
+  // abort previous
+  if (currentAbort) currentAbort.abort();
+  const ac = new AbortController();
+  currentAbort = ac;
+
+  const src = SOURCES[currentIdx];
+  // update UI
+  srcName.textContent = src.name;
+  document.querySelectorAll('.chip').forEach((c, i) => c.classList.toggle('active', i === currentIdx));
+  const activeChip = sourcesEl.querySelector('.chip.active');
+  if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+
+  showState('loading');
+  img.removeAttribute('src');
+  cleanupBlob();
+
+  const cacheBust = src.endpoint.includes('?') ? '&t=' : '?t=';
+  const baseUrl = src.endpoint + cacheBust + Date.now();
+
+  // Strategy 1: direct <img> load (best for CORS-supported 302 image endpoints — works for most)
+  try {
+    const url = await imgLoadRace(baseUrl, IMG_TIMEOUT);
+    if (ac.signal.aborted) return;
+    currentImgUrl = url;
+    img.src = url;
+    img.onload = () => { if (!ac.signal.aborted) showState('image'); };
+    img.onerror = () => { if (!ac.signal.aborted) tryFallbackFetch(src, ac, baseUrl); };
+    return;
+  } catch (e) {
+    if (ac.signal.aborted) return;
+  }
+
+  // Strategy 2: fetch through proxies → blob → objectURL
+  await tryFallbackFetch(src, ac, baseUrl);
+}
+
+function imgLoadRace(url, timeout) {
+  return new Promise((resolve, reject) => {
+    const tmp = new Image();
+    tmp.referrerPolicy = 'no-referrer';
+    let to;
+    const done = () => { clearTimeout(to); tmp.onload = tmp.onerror = null; };
+    tmp.onload = () => { done(); resolve(url); };
+    tmp.onerror = () => { done(); reject(new Error('img error')); };
+    to = setTimeout(() => { done(); reject(new Error('timeout')); }, timeout);
+    tmp.src = url;
+  });
+}
+
+async function tryFallbackFetch(src, ac, baseUrl) {
+  // try proxies 1..n (skip 0 which was direct, already failed as <img>)
+  for (let i = 1; i < PROXIES.length; i++) {
+    if (ac.signal.aborted) return;
+    try {
+      const pUrl = PROXIES[i](baseUrl);
+      const ctl = new AbortController();
+      const toId = setTimeout(() => ctl.abort(), FETCH_TIMEOUT);
+      // chain with parent ac
+      const onAbort = () => ctl.abort();
+      ac.signal.addEventListener('abort', onAbort);
+      const resp = await fetch(pUrl, { signal: ctl.signal, cache: 'no-store' });
+      clearTimeout(toId);
+      ac.signal.removeEventListener('abort', onAbort);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const ct = resp.headers.get('content-type') || '';
+      if (ct.includes('application/json') || ct.includes('text/html')) {
+        // may be proxy error page
+        throw new Error('non-image response');
+      }
+      const blob = await resp.blob();
+      if (!blob.type.startsWith('image/')) throw new Error('not image: ' + blob.type);
+      if (ac.signal.aborted) return;
+      cleanupBlob();
+      const objUrl = URL.createObjectURL(blob);
+      currentBlobUrl = objUrl;
+      currentImgUrl = objUrl;
+      img.src = objUrl;
+      img.onload = () => { if (!ac.signal.aborted) showState('image'); };
+      img.onerror = () => {};
+      return;
+    } catch (e) {
+      if (ac.signal.aborted) return;
+      // continue next proxy
+    }
+  }
+  if (ac.signal.aborted) return;
+  showState('error', '当前图源暂时无法加载（可能是网络或 CORS 限制）');
+}
+
+function selectSource(i) {
+  if (i === currentIdx && img.src) { loadImage(); return; }
+  currentIdx = i;
+  loadImage();
+}
+function next() { loadImage(); } // refresh = next random
+function prevSource() {
+  currentIdx = (currentIdx - 1 + SOURCES.length) % SOURCES.length;
+  loadImage();
+}
+function nextSource() {
+  currentIdx = (currentIdx + 1) % SOURCES.length;
+  loadImage();
+}
+
+// ======================= Controls =======================
+$('btnNext').addEventListener('click', next);
+$('btnPrev').addEventListener('click', prevSource);
+card.addEventListener('click', e => {
+  if (e.target.closest('.icon-btn')) return;
+  if (e.target.closest('.tag')) return;
+  if (e.target.closest('.state')) return;
+  next();
+});
+$('btnRetry').addEventListener('click', e => { e.stopPropagation(); loadImage(); });
+
+// Autoplay
+function toggleAuto() {
+  const btn = $('btnAuto');
+  if (autoTimer) {
+    clearInterval(autoTimer); autoTimer = null;
+    btn.classList.remove('active');
+    showToast('自动播放已关闭');
+  } else {
+    autoTimer = setInterval(next, 5000);
+    btn.classList.add('active');
+    showToast('自动播放 · 每 5 秒切换');
+  }
+}
+$('btnAuto').addEventListener('click', toggleAuto);
+
+// Fullscreen
+$('btnFs').addEventListener('click', () => {
+  if (!document.fullscreenElement) { document.documentElement.requestFullscreen?.(); }
+  else { document.exitFullscreen?.(); }
+});
+
+// Copy link
+$('btnCopy').addEventListener('click', () => {
+  if (!currentImgUrl) { showToast('暂无图片'); return; }
+  // copy the real endpoint URL not blob url, if available
+  const s = SOURCES[currentIdx];
+  const toCopy = (currentImgUrl.startsWith('blob:') ? s.endpoint : currentImgUrl);
+  navigator.clipboard.writeText(toCopy).then(() => showToast('图片链接已复制'))
+    .catch(() => showToast('复制失败'));
+});
+
+// Download
+$('btnDl').addEventListener('click', async () => {
+  if (!currentImgUrl) { showToast('暂无图片'); return; }
+  try {
+    const a = document.createElement('a');
+    a.href = currentImgUrl;
+    a.download = 'moe-' + Date.now() + '.jpg';
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    showToast('开始下载');
+  } catch (e) { showToast('下载失败'); }
+});
+
+// ======================= API Info Modal =======================
+function openModal() {
+  const s = SOURCES[currentIdx];
+  $('mTitle').textContent = s.name;
+  $('mSub').textContent = s.desc;
+  $('mUrl').textContent = s.endpoint;
+  $('mResp').textContent = s.respDesc;
+  modal.classList.add('show');
+}
+$('btnInfo').addEventListener('click', e => { e.stopPropagation(); openModal(); });
+$('modalClose').addEventListener('click', () => modal.classList.remove('show'));
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+
+document.querySelectorAll('[data-copy]').forEach(b => {
+  b.addEventListener('click', () => {
+    const s = SOURCES[currentIdx];
+    const type = b.dataset.copy;
+    const url = s.endpoint;
+    const orientLabel = s.orient === 'landscape' ? '横屏' : '竖屏';
+    let text = '';
+    switch (type) {
+      case 'url':
+        text = url; break;
+      case 'curl':
+        text = `curl -L "${url}" -o image.${s.respDesc.includes('webp') ? 'webp' : 'jpg'}`;
+        break;
+      case 'js':
+        text =
+`// ${s.name} · ${s.desc}
+// Method: GET | Auth: None | Response: ${s.respDesc}
+async function loadMoeImage() {
+  try {
+    // 该接口直接返回图片（302 重定向），可直接作 <img src>
+    const img = new Image();
+    img.referrerPolicy = 'no-referrer';
+    img.src = "${url}?t=" + Date.now();
+    document.body.appendChild(img);
+
+    // 若需要 Blob（跨域场景），通过代理 fetch
+    // const proxy = "https://corsproxy.io/?" + encodeURIComponent("${url}");
+    // const resp = await fetch(proxy);
+    // const blob = await resp.blob();
+    // img.src = URL.createObjectURL(blob);
+  } catch (e) {
+    console.error("加载失败：", e);
+  }
+}`;
+        break;
+      case 'html':
+        text = `<img src="${url}" alt="${s.name}" referrerpolicy="no-referrer" loading="lazy">`;
+        break;
+      case 'all':
+        text =
+`═══════════════════════════════
+  ${s.name}
+═══════════════════════════════
+说明：${s.desc}
+方向：${orientLabel}
+Endpoint：${url}
+Method：GET
+Auth：None（无需密钥）
+Response：${s.respDesc}
+CORS：浏览器直连可能受限，建议使用 <img> 标签或代理
+
+───────────────────────────────
+cURL
+───────────────────────────────
+curl -L "${url}" -o image.${s.respDesc.includes('webp') ? 'webp' : 'jpg'}
+
+───────────────────────────────
+HTML
+───────────────────────────────
+<img src="${url}" alt="${s.name}" referrerpolicy="no-referrer">
+
+───────────────────────────────
+JavaScript
+───────────────────────────────
+// 直接作 <img src>（最简单，大部分场景可用）
+const img = new Image();
+img.referrerPolicy = "no-referrer";
+img.src = "${url}?t=" + Date.now();
+document.body.appendChild(img);
+
+// 若需跨域获取 Blob（如转 base64 / 下载），走代理：
+// fetch("https://corsproxy.io/?" + encodeURIComponent("${url}"))
+//   .then(r => r.blob())
+//   .then(blob => { ... })
+`;
+        break;
+    }
+    navigator.clipboard.writeText(text)
+      .then(() => showToast('已复制到剪贴板'))
+      .catch(() => {
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); ta.remove();
+        showToast('已复制到剪贴板');
+      });
+  });
+});
+
+// ======================= Toast =======================
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ======================= Keyboard =======================
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input,textarea')) return;
+  if (modal.classList.contains('show')) {
+    if (e.key === 'Escape') modal.classList.remove('show');
+    return;
+  }
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowDown': next(); break;
+    case 'ArrowLeft': case 'ArrowUp': prevSource(); break;
+    case ' ': e.preventDefault(); toggleAuto(); break;
+    case 'f': case 'F': $('btnFs').click(); break;
+    case 'Escape':
+      if (document.fullscreenElement) document.exitFullscreen();
+      break;
+  }
+});
+
+// ======================= Touch Swipe =======================
+let touchX = 0, touchY = 0, touchStart = 0, moved = false;
+card.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  touchX = t.clientX; touchY = t.clientY; touchStart = Date.now();
+  moved = false;
+}, { passive: true });
+card.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  if (Math.abs(t.clientX - touchX) > 10) moved = true;
+}, { passive: true });
+card.addEventListener('touchend', e => {
+  if (!moved) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchX;
+  const dy = t.clientY - touchY;
+  const dt = Date.now() - touchStart;
+  if (dt < 600 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) next();         // swipe left → next
+    else prevSource();          // swipe right → prev source
+  }
+}, { passive: true });
+
+// ======================= Pause autoplay when hidden =======================
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && autoTimer) {
+    clearInterval(autoTimer); autoTimer = null;
+    $('btnAuto').classList.remove('active');
+  }
+});
+
+// ======================= Boot =======================
+loadImage();
+</script>
+</body>
+</html>
+<!--33539918792573747210083102--><!--02384946662395614730083103--><!--12648873602573747210083103--><!--13426347072395614730083103-->
